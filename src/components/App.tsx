@@ -21,7 +21,7 @@ export const App: FC = () => {
             <Route path="/service/:serviceName" element={ <Service/> } loader={ serviceLoader }>
                 <Route index element={ <Documentation/> } loader={ defaultDocumentation }/>
                 <Route path=":documentation" element={ <Documentation /> } loader={ serviceLoader }>
-                    <Route path=":version" element={ <Documentation /> } />
+                    <Route path=":version" element={ <Documentation /> } loader={ serviceLoader }/>
                 </Route>
             </Route>
 
@@ -43,12 +43,12 @@ export const serviceLoader = async ({ params }: { params: any }) => {
 }
 
 export const defaultDocumentation = async ({ params }: { params: any }) => {
-    const service = await getService(params.serviceName)
+    const service =  await getService(params.serviceName)
     if (hasOpenApi(service)) {
         return redirect("./openapi")
     }
     if (hasAsyncApi(service)) {
         return redirect("./asyncapi")
     }
-    return service
+    return null
 }
