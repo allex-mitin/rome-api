@@ -1,13 +1,16 @@
-import React, { FC, forwardRef, ReactNode, useMemo, useState } from 'react';
-import { useNavigate, useParams } from "react-router-dom";
+import React, {FC, forwardRef, ReactNode, useMemo} from 'react';
+import {useNavigate, useParams} from "react-router-dom";
 import {
     MenuItem,
-    RenderOptionProps, TabIcon,
-    TabMenuVertical, TabText,
-    VerticalTab, VerticalTabBadge,
+    RenderOptionProps,
+    TabIcon,
+    TabMenuVertical,
+    TabText,
+    VerticalTab,
+    VerticalTabBadge,
     VerticalTabProps
 } from '@admiral-ds/react-ui';
-import { Services } from "../helpers";
+import {Services} from "../helpers";
 import styled from "styled-components";
 
 
@@ -62,7 +65,7 @@ const CustomVerticalTab = forwardRef<HTMLButtonElement, CustomVerticalTabProps>(
     },
 );
 
-const services = Services()
+const services = await Services()
 const tabs = services.map((item) => {
     return {
         text: item.name,
@@ -104,7 +107,7 @@ export const Navigator: FC = () => {
 
     const handleSelectTab = (tabId: string) => {
         const currentTab = services.find((tab) => tab.path === tabId);
-        navigate(`/service/${ currentTab.path }`)
+        navigate(`/service/${currentTab.path}`)
     };
 
     const tabIsDisabled = (tabId: string) => {

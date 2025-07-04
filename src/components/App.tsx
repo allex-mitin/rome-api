@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, {FC, useEffect, useState} from 'react';
 import { ThemeProvider } from 'styled-components';
 import { createBrowserRouter, createRoutesFromElements, redirect, Route } from 'react-router-dom';
 import { Layout } from "./Layout";
@@ -9,6 +9,7 @@ import { Service } from "./Service";
 import { getService, hasAsyncApi, hasOpenApi } from "../helpers";
 import { Documentation } from "./Documentation";
 import { FontsVTBGroup, LIGHT_THEME } from '@admiral-ds/react-ui';
+
 
 
 
@@ -42,7 +43,7 @@ export const serviceLoader = async ({ params }: { params: any }) => {
 }
 
 export const defaultDocumentation = async ({ params }: { params: any }) => {
-    const service = getService(params.serviceName)
+    const service = await getService(params.serviceName)
     if (hasOpenApi(service)) {
         return redirect("./openapi")
     }

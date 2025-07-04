@@ -1,0 +1,27 @@
+services:
+  - path: "service1"
+    name: Сервис1
+    openapi:
+      url: /test/openapi.json
+    asyncapi:
+      url: /test/asyncapi.yml
+  - path: "service2"
+    name: Сервис2
+    openapi:
+      url: /test/openapi.json
+      urls:
+        "0.0.1": "/test/versions/openapi-0.0.1.json"
+        "0.0.2": "/test/versions/openapi-0.0.2.json"
+        "0.0.3": "/test/versions/openapi-0.0.3.json"
+    asyncapi:
+      url: /test/asyncapi-v3.yml
+  - path: "service3"
+    name: Сервис3
+    openapi:
+      urls:
+        "0.0.1": "/test/openapi.json"
+        "0.0.2": "/test/openapi.json"
+    asyncapi:
+      urls:
+        "1.1.1": /test/asyncapi.yml
+        "1.1.2": /test/asyncapi.yml

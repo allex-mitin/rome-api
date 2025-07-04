@@ -1,14 +1,29 @@
 import {DocumentationType} from "../models/DocumentationType";
+import yaml from 'js-yaml'
 
-export const Services = (): Array<Service> => {
+export const Services = async () => {
+    await loadYamlSettings()
     return window.settings().services
 }
 
-export const getService = (path: string | undefined): Service | undefined => {
+
+export const getService = async (path: string | undefined) => {
     if (path === undefined) {
         return undefined;
     }
-    return window.settings().services.find(s => s.path === path)
+    const services = await Services()
+    return services.find(s => s.path === path)
+}
+
+const loadYamlSettings = async () => {
+    try {
+        var response = await fetch('/settings.yml')
+        if (!response.ok) response = await fetch('/settings.yaml');
+        if (!response.ok) return null;
+        const settings = yaml.load(await response.text()) as Settings
+        window.settings = () => settings
+    } catch (error) {
+    }
 }
 
 export const hasOpenApi = (service: Service | undefined): boolean => {

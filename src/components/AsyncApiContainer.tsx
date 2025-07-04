@@ -4,9 +4,29 @@ import {Resolver} from "@stoplight/json-ref-resolver";
 import YAML from 'yaml'
 // @ts-expect-error - TODO
 import AsyncApi from '@asyncapi/react-component/browser';
+import styled from "styled-components";
+import { Spinner } from '@admiral-ds/react-ui';
 
 const asyncApiConfig = {
-    show: {errors: process.env.NODE_ENV !== 'production'},
+    schemaID: "asyncapi",
+    show: {
+        sidebar: true,
+        info: true,
+        servers: true,
+        operations: true,
+        messages: true,
+        messageExamples: true,
+        schemas: true,
+        errors: true
+    },
+    expand: {
+        messageExamples: true,
+    },
+    sidebar: {
+        showServers: 'byDefault',
+        showOperations: 'byDefault',
+        useChannelAddressAsIdentifier: true,
+    },
     parserOptions: {}
 };
 
@@ -14,11 +34,17 @@ interface AsyncApiContainerProps {
     url: string;
 }
 
+const AsyncApiContainerWrapper = styled.div`
+    width: 100%;
+    //display: flex;
+    //flex-wrap: wrap;
+    //padding: 50px;
+`
+
 export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({url}) => {
     const [document, setDocument] = useState<string | undefined>(undefined)
     useEffect(() => {
         (async () => {
-
             try {
                 const parsed = await parseDocument(url)
                 const document = YAML.stringify(parsed.result)
@@ -26,17 +52,22 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({url}) => {
             } catch (err){
                 console.log(err)
             }
-
         })();
 
     }, []);
 
+    if(!document){
+        return (
+            <AsyncApiContainerWrapper>
+                <Spinner  dimension="xl" />
+            </AsyncApiContainerWrapper>
+        )
+    }
+
     return (
-        <div style={{
-            "width": "100%"
-        }}>
+        <AsyncApiContainerWrapper>
             <AsyncApi schema={document} config={asyncApiConfig}/>
-        </div>
+        </AsyncApiContainerWrapper>
     )
 };
 
