@@ -1,6 +1,5 @@
 import { FC } from "react";
 import styled from "styled-components";
-import { T } from "@admiral-ds/react-ui";
 
 import openapi from '../assets/openapi.webp';
 import asyncapi from '../assets/asyncapi.webp';

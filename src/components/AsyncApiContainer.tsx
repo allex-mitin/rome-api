@@ -18,21 +18,22 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({url}) => {
     const [document, setDocument] = useState<string | undefined>(undefined)
     useEffect(() => {
         (async () => {
-            const parsed = await parseDocument(url)
-            const document = YAML.stringify(parsed.result)
-            return setDocument(document)
+
+            try {
+                const parsed = await parseDocument(url)
+                const document = YAML.stringify(parsed.result)
+                return setDocument(document)
+            } catch (err){
+                console.log(err)
+            }
 
         })();
 
-        return () => {
-            <div>Loading...</div>
-        }
     }, []);
 
     return (
         <div style={{
-            width: '100%',
-            margin: '10px'
+            "width": "100%"
         }}>
             <AsyncApi schema={document} config={asyncApiConfig}/>
         </div>

@@ -19,7 +19,9 @@ export const App: FC = () => {
             <Route path="/home" element={ <WelcomePage/> }/>
             <Route path="/service/:serviceName" element={ <Service/> } loader={ serviceLoader }>
                 <Route index element={ <Documentation/> } loader={ defaultDocumentation }/>
-                <Route path=":documentation" element={ <Documentation/> } loader={ serviceLoader }/>
+                <Route path=":documentation" element={ <Documentation /> } loader={ serviceLoader }>
+                    <Route path=":version" element={ <Documentation /> } />
+                </Route>
             </Route>
 
             <Route path="*" element={ <ErrorPage/> }/>

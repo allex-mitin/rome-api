@@ -1,8 +1,8 @@
-import { FC } from "react";
-import { Menu } from "./Menu";
-import { useLoaderData } from "react-router-dom";
-import { Outlet } from "react-router";
+import {FC} from "react";
+import {Outlet} from "react-router";
 import styled from "styled-components";
+import {NavBar} from "./NavBar";
+import {Divider} from "@admiral-ds/react-ui";
 
 
 const ServiceWrapper = styled.div`
@@ -10,12 +10,11 @@ const ServiceWrapper = styled.div`
     flex-direction: column;
     width: calc(100vw - 300px);
 `
-
 export const Service: FC = () => {
-    // const service = useLoaderData() as Service
-
     return (
         <ServiceWrapper>
+            <NavBar/>
+            <Divider/>
             <Outlet/>
         </ServiceWrapper>
     )

@@ -13,8 +13,14 @@ const LayoutWrapper = styled.div`
 
 const LayoutBodyWrapper = styled.div`
     display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 10px;
     height: calc(100vh - 100px);
 `;
+
+
+
 
 export const Layout: FC = () => {
     return (

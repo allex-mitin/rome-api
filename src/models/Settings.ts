@@ -5,10 +5,13 @@ interface Settings{
 interface Service {
     path: string,
     name: string,
-    openapi: {
-        url: string
-    },
-    asyncapi: {
-        url: string
-    }
+    openapi: Spec,
+    asyncapi: Spec
 }
+
+interface Spec {
+    url: string,
+    urls: Map<string, string>
+}
+
+

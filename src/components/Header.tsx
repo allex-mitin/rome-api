@@ -3,7 +3,7 @@ import { Logo } from './Logo';
 import { T } from '@admiral-ds/react-ui';
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
-import { Menu } from "./Menu";
+import { SpecToggle } from "./SpecToggle";
 
 const HeaderWrapper = styled.div`
     display: flex;
@@ -23,7 +23,6 @@ export const Header: FC = () => {
             <T font='Header/H6'>
                 Rome API - View API documentation service
             </T>
-            <Menu/>
         </HeaderWrapper>
     );
 };
