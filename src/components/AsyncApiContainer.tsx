@@ -7,6 +7,10 @@ import AsyncApi from '@asyncapi/react-component/browser';
 import styled from "styled-components";
 import { Spinner } from '@admiral-ds/react-ui';
 
+import { Parser } from "@asyncapi/parser";
+
+const parser = new Parser();
+
 const asyncApiConfig = {
     schemaID: "asyncapi",
     show: {
@@ -36,9 +40,13 @@ interface AsyncApiContainerProps {
 
 const AsyncApiContainerWrapper = styled.div`
     width: 100%;
-    //display: flex;
-    //flex-wrap: wrap;
-    //padding: 50px;
+`
+
+const AsyncApiContainerSpinnerWrapper = styled.div`
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 `
 
 export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({url}) => {
@@ -47,8 +55,14 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({url}) => {
         (async () => {
             try {
                 const parsed = await parseDocument(url)
-                const document = YAML.stringify(parsed.result)
-                return setDocument(document)
+
+                const documentOld = YAML.stringify(parsed.old2.result)
+                const documentRaw = await parser.parse(parsed.raw2)
+
+                // console.log('test', documentRaw?.document, documentOld);
+
+                // не судите строго
+                return setDocument(documentRaw?.document || documentOld)
             } catch (err){
                 console.log(err)
             }
@@ -58,9 +72,9 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({url}) => {
 
     if(!document){
         return (
-            <AsyncApiContainerWrapper>
+            <AsyncApiContainerSpinnerWrapper>
                 <Spinner  dimension="xl" />
-            </AsyncApiContainerWrapper>
+            </AsyncApiContainerSpinnerWrapper>
         )
     }
 
@@ -76,17 +90,24 @@ export const parseDocument = async (url: string) => {
         resolvers: {
             file: {
                 resolve: async ref => {
-                    const [file] = await readFile(ref.toString())
-                    return file
+                    const {old} = await readFile(ref.toString())
+                    return old[0]
                 }
             }
         }
     })
 
-    const [yaml, baseUri] = await readFile(url)
-    return resolver.resolve(yaml, {
-        baseUri: baseUri
-    })
+    const {
+        old,
+        raw
+    } = await readFile(url)
+
+    return {
+        old2: await resolver.resolve(old[0], {
+            baseUri: old[1]
+        }),
+        raw2: raw
+    }
 }
 
 export const readFile = async (uri: string) => {
@@ -98,5 +119,9 @@ export const readFile = async (uri: string) => {
                 "url": value.url
             }
         })
-    return [YAML.parse(file.text), file.url]
+
+    return {
+        old: [YAML.parse(file.text), file.url],
+        raw: file.text
+    }
 }
