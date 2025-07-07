@@ -1,5 +1,5 @@
-import React, {FC, forwardRef, ReactNode, useMemo} from 'react';
-import {useNavigate, useParams} from "react-router-dom";
+import React, { FC, forwardRef, ReactNode, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from "react-router-dom";
 import {
     MenuItem,
     RenderOptionProps,
@@ -10,7 +10,7 @@ import {
     VerticalTabBadge,
     VerticalTabProps
 } from '@admiral-ds/react-ui';
-import {Services} from "../helpers";
+import { Services } from "../helpers";
 import styled from "styled-components";
 
 
@@ -65,13 +65,6 @@ const CustomVerticalTab = forwardRef<HTMLButtonElement, CustomVerticalTabProps>(
     },
 );
 
-const services = await Services()
-const tabs = services.map((item) => {
-    return {
-        text: item.name,
-        tabId: item.path
-    }
-})
 
 // tabs.unshift({
 //     text: 'Главная',
@@ -101,13 +94,33 @@ export const Navigator: FC = () => {
     const navigate = useNavigate();
     const path = useParams()
 
+    const [services, setService] = useState([])
+    const [tabs, setTabs] = useState([])
+
+    useEffect(() => {
+        Services().then((data) => {
+            console.log('data', data);
+            setService(() => {
+                return data
+            })
+            setTabs(() => {
+                return data.map((item) => {
+                    return {
+                        text: item.name,
+                        tabId: item.path
+                    }
+                })
+            })
+        })
+    }, []);
+
     const tabsMap = useMemo(() => {
-        return tabs.map((tab) => tab.tabId);
+        return (tabs || []).map((tab) => tab?.tabId);
     }, [tabs]);
 
     const handleSelectTab = (tabId: string) => {
         const currentTab = services.find((tab) => tab.path === tabId);
-        navigate(`/service/${currentTab.path}`)
+        navigate(`/service/${ currentTab.path }`)
     };
 
     const tabIsDisabled = (tabId: string) => {

@@ -1,11 +1,33 @@
-import type {FC} from 'react';
-import {useEffect, useState} from "react";
-import {Resolver} from "@stoplight/json-ref-resolver";
-import YAML from 'yaml'
+import type { FC } from 'react';
+import { useEffect, useState } from "react";
 // @ts-expect-error - TODO
 import AsyncApi from '@asyncapi/react-component/browser';
 import styled from "styled-components";
 import { Spinner } from '@admiral-ds/react-ui';
+import type Uri from 'urijs';
+
+import { fromURL, Parser } from "@asyncapi/parser";
+import { AsyncAPIDocumentInterface } from "@asyncapi/parser/esm/models";
+
+const customFileResolver = (url: Uri) => {
+    return fetch(url.path())
+        .then(value => {
+            return value.text()
+        })
+}
+
+const parser = new Parser({
+    __unstable: {
+        resolver: {
+            resolvers: [
+                {
+                    schema: 'file',
+                    read: customFileResolver
+                }
+            ]
+        }
+    }
+});
 
 const asyncApiConfig = {
     schemaID: "asyncapi",
@@ -36,67 +58,37 @@ interface AsyncApiContainerProps {
 
 const AsyncApiContainerWrapper = styled.div`
     width: 100%;
-    //display: flex;
-    //flex-wrap: wrap;
-    //padding: 50px;
 `
 
-export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({url}) => {
-    const [document, setDocument] = useState<string | undefined>(undefined)
+const AsyncApiContainerSpinnerWrapper = styled.div`
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+`
+
+export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url }) => {
+    const [document, setDocument] = useState<AsyncAPIDocumentInterface | undefined>(undefined)
+
     useEffect(() => {
-        (async () => {
-            try {
-                const parsed = await parseDocument(url)
-                const document = YAML.stringify(parsed.result)
-                return setDocument(document)
-            } catch (err){
-                console.log(err)
-            }
-        })();
+        fromURL(parser, url)
+            .parse()
+            .then((document) => {
+                setDocument(document.document)
+            })
+    }, [url]);
 
-    }, []);
-
-    if(!document){
+    if (!document) {
         return (
-            <AsyncApiContainerWrapper>
-                <Spinner  dimension="xl" />
-            </AsyncApiContainerWrapper>
+            <AsyncApiContainerSpinnerWrapper>
+                <Spinner dimension="xl"/>
+            </AsyncApiContainerSpinnerWrapper>
         )
     }
 
     return (
         <AsyncApiContainerWrapper>
-            <AsyncApi schema={document} config={asyncApiConfig}/>
+            <AsyncApi schema={ document } config={ asyncApiConfig }/>
         </AsyncApiContainerWrapper>
     )
 };
-
-export const parseDocument = async (url: string) => {
-    const resolver = new Resolver({
-        resolvers: {
-            file: {
-                resolve: async ref => {
-                    const [file] = await readFile(ref.toString())
-                    return file
-                }
-            }
-        }
-    })
-
-    const [yaml, baseUri] = await readFile(url)
-    return resolver.resolve(yaml, {
-        baseUri: baseUri
-    })
-}
-
-export const readFile = async (uri: string) => {
-    const file = await fetch(uri)
-        .then(async value => {
-            const text = await value.text();
-            return {
-                "text": text,
-                "url": value.url
-            }
-        })
-    return [YAML.parse(file.text), file.url]
-}
