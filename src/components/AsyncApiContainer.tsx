@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { Spinner } from '@admiral-ds/react-ui';
 import type Uri from 'urijs';
 
-import { fromURL, Parser } from "@asyncapi/parser";
+import { fromURL, Parser } from "@asyncapi/parser/browser";
 import { AsyncAPIDocumentInterface } from "@asyncapi/parser/esm/models";
 
 const customFileResolver = (url: Uri) => {
