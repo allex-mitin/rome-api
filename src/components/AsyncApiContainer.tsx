@@ -32,7 +32,7 @@ const parser = new Parser({
 const asyncApiConfig = {
     schemaID: "asyncapi",
     show: {
-        sidebar: true,
+        sidebar: false,
         info: true,
         servers: true,
         operations: true,
