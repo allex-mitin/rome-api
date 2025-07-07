@@ -1,15 +1,14 @@
 import react from '@vitejs/plugin-react';
 import {defineConfig} from 'vite';
-import {nodePolyfills} from 'vite-plugin-node-polyfills'
 
 
 // eslint-disable-next-line no-restricted-exports
 export default defineConfig({
     plugins: [
         react(),
-        nodePolyfills({
-            include: ['util', 'fs']
-        })
+        // nodePolyfills({
+        //     include: ['util', 'fs']
+        // })
     ],
     build: {
         outDir: 'build',
