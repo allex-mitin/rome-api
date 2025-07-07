@@ -14,13 +14,13 @@ export default defineConfig({
     build: {
         outDir: 'build',
         sourcemap: true,
-        rollupOptions: {
-            output: {
-                entryFileNames: `assets/[name].js?[hash]`,
-                chunkFileNames: `assets/[name].js?[hash]`,
-                assetFileNames: `assets/[name].[ext]?[hash]`,
-            },
-        }
+        // rollupOptions: {
+        //     output: {
+        //         entryFileNames: `assets/[name].js?[hash]`,
+        //         chunkFileNames: `assets/[name].js?[hash]`,
+        //         assetFileNames: `assets/[name].[ext]?[hash]`,
+        //     },
+        // }
     },
     server: {
         port: 3000,
