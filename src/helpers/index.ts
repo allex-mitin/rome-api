@@ -1,11 +1,10 @@
-import {DocumentationType} from "../models/DocumentationType";
+import { DocumentationType } from "../models/DocumentationType";
 import yaml from 'js-yaml'
 
 export const Services = async () => {
     await loadYamlSettings()
     return window.settings().services
 }
-
 
 export const getService = async (path: string | undefined) => {
     if (path === undefined) {
@@ -15,14 +14,33 @@ export const getService = async (path: string | undefined) => {
     return services.find(s => s.path === path)
 }
 
+const loadYamlSettingsGwowingUp = async (link: string) => {
+    // сами со слешом передавайте
+    let response = await fetch(`/${ link }`)
+    let text = await response.text();
+    let settings = yaml.load(text) as Settings
+
+    if (typeof settings === 'string') {
+        return null
+    } else {
+        return settings
+    }
+}
+
 const loadYamlSettings = async () => {
     try {
-        var response = await fetch('/settings.yml')
-        if (!response.ok) response = await fetch('/settings.yaml');
-        if (!response.ok) return null;
-        const settings = yaml.load(await response.text()) as Settings
-        window.settings = () => settings
+        // простите
+        let settings = await loadYamlSettingsGwowingUp('settings2.yml');
+        if (settings === null) {
+            settings = await loadYamlSettingsGwowingUp('settings2.yaml');
+        }
+
+        if (settings !== null) {
+            window.settings = () => settings
+        }
     } catch (error) {
+        // всё равно не поможет, так прост чтоб было
+        return null
     }
 }
 
@@ -80,25 +98,25 @@ export const getSpecification = (service: Service | undefined, documentation: st
 
             if (!version) {
                 const defaultUrl = urls.get("default");
-                if (defaultUrl) return {version: "default", url: defaultUrl};
+                if (defaultUrl) return { version: "default", url: defaultUrl };
 
                 const [firstVersion, firstUrl] = urls.entries().next().value || [];
-                if (firstVersion) return {version: firstVersion, url: firstUrl};
+                if (firstVersion) return { version: firstVersion, url: firstUrl };
 
                 return null;
             }
 
             const url = urls.get(version);
-            return url ? {version, url} : null;
+            return url ? { version, url } : null;
         },
         defaultUrl() {
             const urls = this.urls();
 
             const defaultUrl = urls.get("default");
-            if (defaultUrl) return {version: "default", url: defaultUrl};
+            if (defaultUrl) return { version: "default", url: defaultUrl };
 
             const [firstVersion, firstUrl] = urls.entries().next().value || [];
-            if (firstVersion) return {version: firstVersion, url: firstUrl};
+            if (firstVersion) return { version: firstVersion, url: firstUrl };
 
             return null;
 

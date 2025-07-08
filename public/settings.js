@@ -1,4 +1,4 @@
-function settings() {
+window.settings = () => {
     return {
         "services": [
             {
@@ -7,8 +7,8 @@ function settings() {
                 "openapi": {
                     "url": "/test/openapi.json",
                     "urls": {
-                        "0.0.1" : "/test/0.0.1/openapi.json",
-                        "0.0.2" : "/test/0.0.2/openapi.json"
+                        "0.0.1": "/test/0.0.1/openapi.json",
+                        "0.0.2": "/test/0.0.2/openapi.json"
                     }
                 },
                 "asyncapi": {
