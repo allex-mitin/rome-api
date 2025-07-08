@@ -104,7 +104,7 @@ export const Navigator: FC = () => {
                 return data
             })
             setTabs(() => {
-                return data.map((item) => {
+                return (data || []).map((item) => {
                     return {
                         text: item.name,
                         tabId: item.path
