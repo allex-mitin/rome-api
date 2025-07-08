@@ -10,7 +10,8 @@
     "lint:fix": "npm run lint -- --fix",
     "start": "vite serve --host=0.0.0.0",
     "types": "tsc",
-    "build": "vite build"
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@admiral-ds/fonts": "^2.0.0",
@@ -18,8 +19,6 @@
     "@admiral-ds/react-ui": "^8.52.2",
     "@asyncapi/react-component": "2.6.3",
     "@vitejs/plugin-react": "^4.2.1",
-    "vite-plugin-node-polyfills": "^0.24.0",
-    "vite-plugin-html-inject": "^1.1.2",
     "buffer": "^6.0.3",
     "classnames": "^2.5.1",
     "compare-versions": "^6.1.0",
@@ -29,7 +28,9 @@
     "react-router-dom": "^6.22.2",
     "swagger-ui": "^5.25.4",
     "swagger-ui-react": "^5.25.4",
-    "vite": "^5.1.4"
+    "vite": "^5.1.4",
+    "vite-plugin-html-inject": "^1.1.2",
+    "vite-plugin-node-polyfills": "^0.24.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
