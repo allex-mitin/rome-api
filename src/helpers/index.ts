@@ -30,9 +30,9 @@ const loadYamlSettingsGwowingUp = async (link: string) => {
 const loadYamlSettings = async () => {
     try {
         // простите
-        let settings = await loadYamlSettingsGwowingUp('settings2.yml');
+        let settings = await loadYamlSettingsGwowingUp('settings.yml');
         if (settings === null) {
-            settings = await loadYamlSettingsGwowingUp('settings2.yaml');
+            settings = await loadYamlSettingsGwowingUp('settings.yaml');
         }
 
         if (settings !== null) {
