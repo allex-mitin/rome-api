@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { Spinner } from '@admiral-ds/react-ui';
 import type Uri from 'urijs';
 
-import { fromURL, Parser } from "@asyncapi/parser";
+import { fromURL, ParseOutput, Parser } from "@asyncapi/parser";
 import { AsyncAPIDocumentInterface } from "@asyncapi/parser/esm/models";
 
 const customFileResolver = (url: Uri) => {
@@ -42,7 +42,7 @@ const asyncApiConfig = {
         errors: true
     },
     expand: {
-        messageExamples: true,
+        messageExamples: false,
     },
     sidebar: {
         showServers: 'byDefault',
@@ -68,17 +68,17 @@ const AsyncApiContainerSpinnerWrapper = styled.div`
 `
 
 export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url }) => {
-    const [document, setDocument] = useState<AsyncAPIDocumentInterface | undefined>(undefined)
+    const [result, setResult] = useState<ParseOutput | undefined>(undefined)
 
     useEffect(() => {
         fromURL(parser, url)
             .parse()
-            .then((document) => {
-                setDocument(document.document)
+            .then((result) => {
+                setResult(result)
             })
     }, [url]);
 
-    if (!document) {
+    if (!result) {
         return (
             <AsyncApiContainerSpinnerWrapper>
                 <Spinner dimension="xl"/>
@@ -86,9 +86,19 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url }) => {
         )
     }
 
+    if(result?.diagnostics){
+        return (
+            <AsyncApiContainerSpinnerWrapper>
+                { result.diagnostics.map((item) => (
+                    <div>{ JSON.stringify( item ) }</div>
+                ))}
+            </AsyncApiContainerSpinnerWrapper>
+        )
+    }
+
     return (
         <AsyncApiContainerWrapper>
-            <AsyncApi schema={ document } config={ asyncApiConfig }/>
+            <AsyncApi schema={ result.document } config={ asyncApiConfig }/>
         </AsyncApiContainerWrapper>
     )
 };
