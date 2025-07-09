@@ -63,7 +63,7 @@ const AsyncApiContainerWrapper = styled.div`
 const AsyncApiContainerSpinnerWrapper = styled.div`
     width: 100%;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 `
@@ -87,7 +87,7 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url }) => {
         )
     }
 
-    if(result?.diagnostics && result?.diagnostics.length > 0){
+    if(!result.document && result?.diagnostics && result?.diagnostics.length > 0){
         return (
             <AsyncApiContainerSpinnerWrapper>
                 { result.diagnostics.map((item) => (
