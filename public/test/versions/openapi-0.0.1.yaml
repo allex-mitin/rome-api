@@ -1,0 +1,45 @@
+# Версия 0.0.1. Схемы берутся из общего файла `multi-file/schemas/pet.yaml`:
+# так один и тот же DTO переиспользуется между версиями сервиса.
+openapi: 3.0.3
+info:
+  title: Pets API
+  version: 0.0.1
+  description: Первая версия — доступно только чтение питомца по идентификатору.
+tags:
+  - name: pets
+    description: Операции над питомцами
+paths:
+  /pets/{petId}:
+    get:
+      tags:
+        - pets
+      summary: Найти питомца по идентификатору
+      operationId: getPetById
+      parameters:
+        - name: petId
+          in: path
+          description: Идентификатор питомца
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Питомец найден
+          content:
+            application/json:
+              schema:
+                $ref: '../multi-file/schemas/pet.yaml#/Pet'
+        '404':
+          description: Питомец не найден
+          content:
+            application/json:
+              schema:
+                $ref: '../multi-file/schemas/error.yaml#/Error'
+components:
+  schemas:
+    # Общие DTO из multi-file/schemas: тот же файл подключают и другие версии.
+    Pet:
+      $ref: '../multi-file/schemas/pet.yaml#/Pet'
+    Error:
+      $ref: '../multi-file/schemas/error.yaml#/Error'

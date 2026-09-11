@@ -22,7 +22,7 @@ export const App: FC = () => {
         <Route key="root" path="/" element={ <Layout/> }>
             <Route index element={ <WelcomePage/> }/>
             <Route path="/home" element={ <WelcomePage/> }/>
-            <Route path="/service/:serviceName" element={ <Service/> } loader={ serviceLoader }>
+            <Route path="/service/:serviceName" element={ <Service/> } loader={ serviceLoader } errorElement={ <ErrorPage/> }>
                 <Route index element={ <Documentation/> } loader={ defaultDocumentation }/>
                 <Route path=":documentation" element={ <Documentation /> } loader={ serviceLoader }>
                     <Route path=":version" element={ <Documentation /> } loader={ serviceLoader }/>
@@ -46,7 +46,15 @@ export const App: FC = () => {
 };
 
 export const serviceLoader = async ({ params }: LoaderFunctionArgs) => {
-    return getService(params.serviceName);
+    const service = await getService(params.serviceName)
+    if (service === undefined) {
+        // The URL can name a service that is missing from `settings.yml` (a renamed or removed one),
+        // and `NavBar` reads `service.name` immediately — returning `undefined` crashed the whole route
+        // tree with "Cannot read properties of undefined (reading 'name')". Throwing a route error
+        // instead makes react-router render the closest `errorElement` (`ErrorPage`).
+        throw new Response('Not Found', { status: 404 })
+    }
+    return service
 }
 
 export const defaultDocumentation = async ({ params }: LoaderFunctionArgs) => {

@@ -4,7 +4,7 @@ import yaml from 'js-yaml';
  * Assembles a spec that is split across several files into a single document.
  *
  * This is the core feature of the project: a root spec references other files through
- * `$ref` (e.g. `./messages/messages.yaml#/components/messages/MqMessage`), which in turn
+ * `$ref` (e.g. `./messages/messages.yaml#/components/messages/ping`), which in turn
  * may reference more files. Here those external references are followed and inlined, so the
  * result is a self-contained document that can be downloaded or copied.
  *
@@ -34,7 +34,23 @@ export type FetchLike = (url: string) => Promise<FetchResponseLike>;
 export const formatOf = (url: string): SpecFormat =>
     url.split(/[?#]/)[0].toLowerCase().endsWith('.json') ? 'json' : 'yaml';
 
+/**
+ * True when the body is an HTML page rather than a spec document. A URL of a spec that does not exist
+ * is usually answered by the SPA entry point (Vite dev server, nginx `try_files $uri $uri/ /index.html`)
+ * with HTTP 200, so without this check the user sees a cryptic JSON/YAML parse error instead of a hint.
+ */
+export const isHtmlPage = (text: string): boolean => text.trimStart().startsWith('<');
+
+export const htmlInsteadOfSpec = (url: string): Error =>
+    new Error(
+        `По адресу ${url} отдана HTML-страница, а не спецификация. Скорее всего, файла по этому пути нет, ` +
+        'а SPA-фолбэк сервера отвечает index.html с кодом 200 — проверьте путь в настройках сервиса.'
+    );
+
 export const parseSpec = (text: string, url: string): unknown => {
+    if (isHtmlPage(text)) {
+        throw htmlInsteadOfSpec(url);
+    }
     if (formatOf(url) === 'json') {
         return JSON.parse(text);
     }

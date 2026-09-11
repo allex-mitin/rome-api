@@ -1,0 +1,28 @@
+# Общий модуль DTO (JSON Schema). Переиспользуется сообщениями и версиями спецификаций:
+# см. ../messages/messages.yaml и public/test/versions/asyncapi-*.yaml.
+components:
+  schemas:
+    Ping:
+      type: object
+      title: Ping
+      description: Событие-запрос.
+      required:
+        - event
+      properties:
+        event:
+          type: string
+          const: ping
+    Pong:
+      type: object
+      title: Pong
+      description: Событие-ответ.
+      required:
+        - event
+      properties:
+        event:
+          type: string
+          const: pong
+        receivedAt:
+          type: string
+          format: date-time
+          description: Когда ответ был получен.

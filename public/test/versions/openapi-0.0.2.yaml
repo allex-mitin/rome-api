@@ -1,0 +1,98 @@
+# Версия 0.0.2: добавлены список питомцев и создание. Схемы — те же общие файлы
+# `multi-file/schemas/*.yaml`, что и в 0.0.1, поэтому переключатель версий меняет
+# только набор операций, а DTO остаётся единым.
+openapi: 3.0.3
+info:
+  title: Pets API
+  version: 0.0.2
+  description: Добавлены список питомцев и создание питомца.
+tags:
+  - name: pets
+    description: Операции над питомцами
+paths:
+  /pets:
+    get:
+      tags:
+        - pets
+      summary: Список питомцев
+      operationId: listPets
+      parameters:
+        - name: limit
+          in: query
+          description: Сколько питомцев вернуть
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Список питомцев
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '../multi-file/schemas/pet.yaml#/Pet'
+    post:
+      tags:
+        - pets
+      summary: Добавить питомца
+      operationId: createPet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../multi-file/schemas/pet.yaml#/NewPet'
+      responses:
+        '201':
+          description: Питомец создан
+          content:
+            application/json:
+              schema:
+                $ref: '../multi-file/schemas/pet.yaml#/Pet'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '../multi-file/schemas/error.yaml#/Error'
+  /pets/{petId}:
+    get:
+      tags:
+        - pets
+      summary: Найти питомца по идентификатору
+      operationId: getPetById
+      parameters:
+        - name: petId
+          in: path
+          description: Идентификатор питомца
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Питомец найден
+          content:
+            application/json:
+              schema:
+                $ref: '../multi-file/schemas/pet.yaml#/Pet'
+        '404':
+          description: Питомец не найден
+          content:
+            application/json:
+              schema:
+                $ref: '../multi-file/schemas/error.yaml#/Error'
+components:
+  schemas:
+    # Общие DTO из multi-file/schemas: тот же файл подключают и другие версии.
+    Pet:
+      $ref: '../multi-file/schemas/pet.yaml#/Pet'
+    NewPet:
+      $ref: '../multi-file/schemas/pet.yaml#/NewPet'
+    Error:
+      $ref: '../multi-file/schemas/error.yaml#/Error'

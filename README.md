@@ -45,7 +45,22 @@ npm run analyze    # прод-сборка + отчёт о бандле (build/s
 **Не убирать без перепроверки `npm audit`** — иначе уязвимые версии вернутся в дерево.
 Если `swagger-ui` в будущем ослабит пин, `overrides` можно будет удалить.
 
-Демо-спецификации лежат в `public/test/` и используются конфигом по умолчанию.
+### Демо-фикстуры
+
+Демо-спецификации лежат в `public/test/` и разложены по сценариям — каждому соответствует сервис
+в `settings.yml`:
+
+| Путь | Сценарий | Сервис |
+| --- | --- | --- |
+| `test/single-file/` | спецификация одним файлом: Petstore (OpenAPI 2.0, JSON) и Streetlights (AsyncAPI 3.0, YAML), внешних `$ref` нет | `single-file` |
+| `test/multi-file/` | спецификация из кусков: корневые `openapi.yaml`/`asyncapi.yaml` ссылаются на `schemas/` и `messages/`, а те — на общий `model/ping.yaml` | `multi-file` |
+| `test/versions/` | несколько версий: `openapi-0.0.1`/`0.0.2` и `asyncapi-1.0.0`/`2.0.0`; обе версии OpenAPI переиспользуют общие схемы из `multi-file/schemas/` | `versions` |
+| `test/invalid/` | заведомо битые документы для панели валидации: нет `info.version`, висячие внутренние ссылки, ссылка на несуществующий файл, операция AsyncAPI без `channel` | `invalid` |
+| `test/missing/` | несуществующая спецификация — каталога на диске **нет намеренно**, иначе сценарий перестанет воспроизводиться | `missing` |
+
+Для последнего сценария важно, что файла действительно нет: dev-сервер (и nginx с SPA-фолбэком на все
+пути) отвечает на такой URL `index.html` с кодом 200, поэтому приложение проверяет ответ само и пишет в
+панель, что вместо спецификации отдана HTML-страница (`isHtmlPage` в `src/helpers/specBundler.ts`).
 
 ## Конфигурация
 
@@ -54,22 +69,24 @@ npm run analyze    # прод-сборка + отчёт о бандле (build/s
 
 ```yaml
 services:
-  - path: "service1"          # сегмент URL: /service/service1
-    name: Сервис1             # отображаемое имя
+  - path: "single-file"          # сегмент URL: /service/single-file
+    name: Спека одним файлом     # отображаемое имя
     openapi:
-      url: /test/openapi.json # спецификация по умолчанию
+      url: /test/single-file/openapi.json # спецификация по умолчанию
     asyncapi:
-      url: /test/asyncapi.yml
-  - path: "service2"
-    name: Сервис2
+      url: /test/single-file/asyncapi.yaml
+  - path: "versions"
+    name: Версии спецификаций
     openapi:
-      urls:                   # несколько версий: /service/service2/openapi/0.0.1
-        "0.0.1": "/test/versions/openapi-0.0.1.json"
-        "0.0.2": "/test/versions/openapi-0.0.2.json"
+      urls:                   # несколько версий: /service/versions/openapi/0.0.1
+        "0.0.1": "/test/versions/openapi-0.0.1.yaml"
+        "0.0.2": "/test/versions/openapi-0.0.2.yaml"
     asyncapi:
-      url: /test/asyncapi-v3.yml
-  - path: "service3"
-    name: Сервис3
+      urls:
+        "1.0.0": "/test/versions/asyncapi-1.0.0.yaml"
+        "2.0.0": "/test/versions/asyncapi-2.0.0.yaml"
+  - path: "no-specs"
+    name: Сервис без спек
 ```
 
 Правила:
@@ -81,26 +98,33 @@ services:
 
 ### Разбиение спецификации на файлы
 
-Корневая спецификация может ссылаться на внешние файлы — это позволяет переиспользовать DTO:
+Корневая спецификация может ссылаться на внешние файлы — это позволяет переиспользовать DTO.
+Цепочка может быть вложенной: корень → файл с описаниями → файл с DTO.
 
 ```yaml
-# asyncapi.yml
+# multi-file/asyncapi.yaml
 channels:
   ping:
+    address: /ping
     messages:
       ping:
-        $ref: './messages/messages.yaml#/components/messages/MqMessage'
+        $ref: './messages/messages.yaml#/components/messages/ping'
 ```
 
 ```yaml
-# messages/messages.yaml
+# multi-file/messages/messages.yaml
 components:
   messages:
-    MqMessage:
-      $ref: '../model/ping.yaml#/components/messages/ping'
+    ping:
+      name: ping
+      payload:
+        $ref: '../model/ping.yaml#/components/schemas/Ping'
 ```
 
-Для AsyncAPI внешние ссылки резолвит кастомный file-resolver (`src/components/AsyncApiContainer.tsx`).
+OpenAPI разбивается так же — `multi-file/openapi.yaml` держит операции у себя, а схемы берёт из
+`schemas/*.yaml`. Для AsyncAPI внешние ссылки резолвит кастомный file-resolver
+(`src/components/AsyncApiContainer.tsx`), для OpenAPI — сам `swagger-ui`. Кнопка «Скачать» собирает
+такой документ в один файл (`src/helpers/specBundler.ts`).
 
 ## Деплой
 
@@ -127,7 +151,11 @@ src/
 public/
   settings.js     Фолбэк-конфигурация
   settings.yml    Демо-конфигурация
-  test/           Демо-спецификации (в т.ч. разбитые на файлы)
+  test/           Демо-спецификации по сценариям (см. «Демо-фикстуры»):
+    single-file/    спецификация одним файлом
+    multi-file/     спецификация из кусков ($ref на схемы и сообщения)
+    versions/       несколько версий, переиспользующих общие файлы
+    invalid/        документы с ошибками валидации
 deploy/
   nginx.conf.example
 ```

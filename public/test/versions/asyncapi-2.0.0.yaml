@@ -1,0 +1,36 @@
+# Версия 2.0.0: к запросу ping добавился канал ответа pong. Описания сообщений
+# по-прежнему лежат в общем модуле `multi-file/messages/messages.yaml`.
+asyncapi: 3.0.0
+info:
+  title: Ping/pong
+  version: 2.0.0
+  description: Появился канал ответов pong.
+defaultContentType: application/json
+channels:
+  ping:
+    address: /ping
+    description: Канал запросов ping.
+    messages:
+      ping:
+        $ref: '../multi-file/messages/messages.yaml#/components/messages/ping'
+  pong:
+    address: /pong
+    description: Канал ответов pong.
+    messages:
+      pong:
+        $ref: '../multi-file/messages/messages.yaml#/components/messages/pong'
+operations:
+  pingRequest:
+    action: send
+    summary: Отправить запрос ping.
+    channel:
+      $ref: '#/channels/ping'
+    messages:
+      - $ref: '#/channels/ping/messages/ping'
+  pongReply:
+    action: receive
+    summary: Получить ответ pong.
+    channel:
+      $ref: '#/channels/pong'
+    messages:
+      - $ref: '#/channels/pong/messages/pong'

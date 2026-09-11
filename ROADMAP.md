@@ -76,6 +76,30 @@
       которого в проекте не было.
 - [x] Добавлен `deploy/nginx.conf.example` с обязательным SPA-фолбэком
       `try_files $uri $uri/ /index.html`.
+- [x] **Демо-фикстуры разложены по сценариям.** Раньше они лежали общей кучей: `openapi.json`
+      (Petstore, 1054 строки) дублировался трижды — самим файлом и двумя «версиями», отличавшимися
+      только `info.version`; единственная разбитая спека (`asyncapi.yml`) внутри дублировала сообщения,
+      которые уже лежали в `model/ping.yaml`; примера «спеки не существует» не было вообще.
+      Теперь: `public/test/single-file/` (спека одним файлом), `public/test/multi-file/`
+      (корневые `openapi.yaml`/`asyncapi.yaml` → `schemas/`, `messages/` → общий `model/ping.yaml`),
+      `public/test/versions/` (0.0.1/0.0.2 и 1.0.0/2.0.0, обе версии OpenAPI берут схемы из
+      `multi-file/schemas/`), `public/test/invalid/` (вместо `broken/`) и сервис `missing`
+      без файлов на диске. `settings.yml` и `public/settings.js` переписаны под новую раскладку.
+      Попутно нашлась дыра: при отсутствии файла по адресу спеки сервер (dev-сервер Vite, nginx с
+      SPA-фолбэком) отвечает `index.html` с кодом 200, и пользователь видел `Unexpected token '<'`
+      от `JSON.parse`, а AsyncAPI-парсер — «This is not an AsyncAPI document». Добавлена проверка
+      `isHtmlPage` в `src/helpers/specBundler.ts` (`parseSpec` и `AsyncApiContainer`), теперь панель
+      сообщает, что по адресу отдана HTML-страница, а не спецификация. В `deploy/nginx.conf.example`
+      json/yaml-пути уже исключены из SPA-фолбэка (`try_files $uri =404`), поэтому в проде тот же
+      сценарий даёт настоящий 404.
+      Проверено в Node против поднятого dev-сервера: все валидные фикстуры парсятся, все внешние `$ref`
+      разрешаются (включая двухуровневую цепочку `openapi.yaml` → `schemas/pet.yaml` → `schemas/tag.yaml`),
+      `swagger-client` (движок swagger-ui) собирает разбитую OpenAPI-спеку и обе версии без ошибок,
+      `@asyncapi/parser` на валидных AsyncAPI-фикстурах даёт только информационную диагностику про
+      версию 3.1.0, а битые фикстуры — ровно ожидаемые ошибки (висячая ссылка, нет `info.version`,
+      операция без `channel`).
+      `TYPES_EXIT=0`, `LINT_EXIT=0`, `BUILD_EXIT=0`.
+      **Требуется проверка в браузере** — рендер обеих страниц после переезда фикстур.
 
 ### Верификация
 - [x] Прогнаны `npm run types`, `npm run lint`, `npm run build` — все зелёные
@@ -256,9 +280,12 @@
       уже разворачивается, она остаётся как есть. Формат берётся из расширения исходника
       (`.json` → JSON, иначе YAML), имя файла — `<сервис>-<openapi|asyncapi>-<версия>.yml|json`.
       Проверено на фикстурах проекта (двухуровневая цепочка `asyncapi.yml` → `messages/messages.yaml`
+      → `model/ping.yaml`; сейчас это `test/multi-file/asyncapi.yaml` → `messages/messages.yaml`
       → `model/ping.yaml`): внешних `$ref` осталось 0, `channels.ping.messages.ping.payload.properties
-      .event.const` = `"ping"`, а 30 внутренних ссылок в `asyncapi-v3.yml` сохранены. Также проверены
-      `openapi.json` и спека из подпапки `versions/` (корректная база для относительных ссылок).
+      .event.const` = `"ping"`, а 30 внутренних ссылок в Streetlights-спеке (`test/single-file/asyncapi.yaml`,
+      тогда — `asyncapi-v3.yml`) сохранены. Также проверены
+      `single-file/openapi.json` (тогда — `openapi.json`) и спека из подпапки `versions/`
+      (корректная база для относительных ссылок).
       Цена — **+4.8 kB** в главном чанке (`index` 457.8 → **462.6 kB**).
       Проверено в браузере: файл скачивается и содержит весь документ целиком, копирование в буфер
       обмена работает.
@@ -276,15 +303,16 @@
       ложные ошибки. Битые **внешние** ссылки выявляются отдельным проходом через `bundleSpec`.
       Попутно исправлено: у `fromURL(parser, url).parse()` не было `.catch` — ошибка загрузки
       AsyncAPI-спеки давала необработанный reject вместо сообщения; теперь показывается в панели.
-      Проверено в Node: на реальной спеке `public/test/openapi.json` (16 внутренних ссылок)
+      Проверено в Node: на реальной спеке `public/test/single-file/openapi.json` (16 внутренних ссылок)
       ложных срабатываний нет; на намеренно битых документах — отсутствие `info`/`paths`, висячая
       внутренняя ссылка, битая внешняя ссылка (404 с именем файла), необъектный документ.
       Цена — **+5.5 kB** суммарно; общий чанк переименовался из `LoadingSpec` в `specValidation`
       (58,6 → 63,5 kB) — это тот же общий чанк, дублирования `js-yaml`/`buffer`/`lodash` нет,
       подтверждено разбором через `npm run analyze`.
-      Для удобной проверки добавлены демо-фикстуры `public/test/broken/openapi.json` и
-      `public/test/broken/asyncapi.yml` плюс сервис `broken` в `settings.yml` («Битые спеки (проверка
-      валидации)»): в них заведомо нет `info.version`, есть висячие внутренние ссылки и ссылка на
+      Для удобной проверки добавлены демо-фикстуры `public/test/invalid/openapi.json` и
+      `public/test/invalid/asyncapi.yml` (на момент написания — `public/test/broken/`) плюс сервис
+      `invalid` в `settings.yml` («Битые спеки (проверка валидации)», сейчас — «Спеки с ошибками
+      валидации»): в них заведомо нет `info.version`, есть висячие внутренние ссылки и ссылка на
       несуществующий файл, а у операции AsyncAPI отсутствует `channel`.
       **Требуется проверка в браузере.**
 - [x] **Глобальный поиск** по всем сервисам, операциям и схемам. Без новых зависимостей: индексация —
@@ -296,7 +324,7 @@
       Что попадает в индекс: OpenAPI — операции (`METHOD path`, заголовок из `summary`/`operationId`)
       и схемы; AsyncAPI — каналы, операции, сообщения и схемы.
       Важно: у OpenAPI схемы берутся и из `components.schemas` (3.x), и из `definitions` (2.0) —
-      демо-спека `public/test/openapi.json` как раз Swagger 2.0, без этой ветки поиск по схемам
+      демо-спека `public/test/single-file/openapi.json` как раз Swagger 2.0, без этой ветки поиск по схемам
       у неё бы не работал.
       Падающий сервис не ломает индекс: ошибки собираются в `skipped` и показываются отдельной строкой.
       Глубокие ссылки реализованы для OpenAPI: якорь `#/<tag>/<operationId>` — это ровно тот формат,

@@ -1,0 +1,50 @@
+# Общий модуль DTO. Переиспользуется другими спецификациями и версиями сервиса.
+# Ссылка на `./tag.yaml` даёт двухуровневую цепочку `$ref` — её умеют разворачивать
+# и рендерер, и сборщик полного документа (см. src/helpers/specBundler.ts).
+Pet:
+  type: object
+  title: Питомец
+  description: Питомец в зоомагазине.
+  required:
+    - id
+    - name
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+      example: 42
+    name:
+      type: string
+      example: Барсик
+    status:
+      type: string
+      description: Статус питомца в магазине.
+      enum:
+        - available
+        - pending
+        - sold
+    tags:
+      type: array
+      items:
+        $ref: './tag.yaml#/Tag'
+NewPet:
+  type: object
+  title: Новый питомец
+  description: Данные для создания питомца — без идентификатора, его назначает сервис.
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      example: Барсик
+    status:
+      type: string
+      enum:
+        - available
+        - pending
+        - sold
+    tags:
+      type: array
+      items:
+        $ref: './tag.yaml#/Tag'

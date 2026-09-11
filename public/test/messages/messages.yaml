@@ -1,4 +1,0 @@
-components:
-  messages:
-    MqMessage:
-      $ref: '../model/ping.yaml#/components/messages/ping'

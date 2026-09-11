@@ -10,6 +10,7 @@ import { fromURL, ParseOutput, Parser } from "@asyncapi/parser";
 
 import { ValidationPanel } from "./ValidationPanel";
 import { fromSpectralDiagnostic } from "../helpers/specValidation";
+import { htmlInsteadOfSpec, isHtmlPage } from "../helpers/specBundler";
 
 const customFileResolver = (url: Uri) => {
     return fetch(url.path())
@@ -76,14 +77,30 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url }) => {
 
     useEffect(() => {
         setFailure(null)
-        fromURL(parser, url)
-            .parse()
+        let cancelled = false
+        // The URL is fetched up front on purpose: a spec that does not exist is answered by the SPA
+        // entry point (HTTP 200 + HTML), and the parser would then report a misleading
+        // "This is not an AsyncAPI document" instead of pointing at the missing file.
+        fetch(url)
+            .then(async (response) => {
+                const text = await response.text()
+                if (!response.ok) {
+                    throw new Error(`Не удалось загрузить ${ url }: ${ response.status }`)
+                }
+                if (isHtmlPage(text)) {
+                    throw htmlInsteadOfSpec(url)
+                }
+            })
+            .then(() => fromURL(parser, url).parse())
             .then((parsed) => {
-                setResult(parsed)
+                if (!cancelled) setResult(parsed)
             })
             .catch((cause: unknown) => {
-                setFailure(cause instanceof Error ? cause.message : String(cause))
+                if (!cancelled) setFailure(cause instanceof Error ? cause.message : String(cause))
             })
+        return () => {
+            cancelled = true
+        }
     }, [url]);
 
     if (failure) {
