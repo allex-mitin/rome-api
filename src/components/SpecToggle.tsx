@@ -31,7 +31,7 @@ export const SpecToggle: FC = () => {
 
     return (
         <SpecToggleWrapper>
-            <ContentSwitcher dimension={ 'm' }>
+            <ContentSwitcher dimension={ 's' }>
                 { items.map((item) => (
                     <ContentSwitcherItem
                         key={ item.id }

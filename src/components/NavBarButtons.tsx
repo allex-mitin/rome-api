@@ -11,7 +11,6 @@ import type { Service } from "../types";
 
 const ButtonsWrapper = styled.div`
     margin-left: auto;
-    padding: 10px 10px 10px 10px;
     display: flex;
     align-items: center;
     gap: 4px;

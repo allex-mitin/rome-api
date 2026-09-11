@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { ThemeProvider } from 'styled-components';
 import {
     createBrowserRouter,
@@ -13,11 +13,19 @@ import { WelcomePage } from "../pages/WelcomePage";
 import { ErrorPage } from "../pages/ErrorPage";
 import { Service } from "./Service";
 import { getService, hasAsyncApi, hasOpenApi } from "../helpers";
+import { applyDocumentBranding, useBranding } from '../helpers/branding';
 import { Documentation } from "./Documentation";
 import { FontsVTBGroup, LIGHT_THEME } from '@admiral-ds/react-ui';
 
 
 export const App: FC = () => {
+    // The branding also covers the parts of the page that live outside the header: the browser tab
+    // and the favicon. It is applied here so it does not depend on the route that is rendered.
+    const branding = useBranding();
+    useEffect(() => {
+        applyDocumentBranding(branding);
+    }, [branding]);
+
     const routes = createRoutesFromElements([
         <Route key="root" path="/" element={ <Layout/> }>
             <Route index element={ <WelcomePage/> }/>

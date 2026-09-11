@@ -1,6 +1,7 @@
 import { FC, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { SystemSearchOutline } from "@admiral-ds/icons";
 import { Services } from "../helpers";
 import { buildSearchIndex } from "../helpers/specIndex";
 import type { SearchEntry } from "../helpers/specIndex";
@@ -22,36 +23,63 @@ const KIND_LABEL: Record<SearchEntry['kind'], string> = {
 const Wrapper = styled.div`
     position: relative;
     flex: 0 1 420px;
+    min-width: 160px;
+`
+
+const SearchIcon = styled(SystemSearchOutline)`
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    width: 18px;
+    height: 18px;
+    transform: translateY(-50%);
+    color: #98a2b3;
+    pointer-events: none;
 `
 
 const SearchInput = styled.input`
     width: 100%;
     box-sizing: border-box;
-    height: 36px;
-    padding: 0 12px;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
+    height: 40px;
+    padding: 0 14px 0 38px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: #f2f4f7;
     font: inherit;
     font-size: 14px;
+    color: #101828;
+    transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 
+    &::placeholder {
+        color: #98a2b3;
+    }
+
+    &:hover {
+        background: #eaecf0;
+    }
+
+    // The accent colour arrives as a CSS variable from the branding settings, so a palette colour is
+    // mixed into the ring instead of picking a matching alpha by hand.
     &:focus {
         outline: none;
-        border-color: #4696e5;
+        background: #fff;
+        border-color: var(--app-accent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent) 22%, transparent);
     }
 `
 
 const Dropdown = styled.div`
     position: absolute;
     z-index: 20;
-    top: 42px;
+    top: 46px;
     left: 0;
     right: 0;
     max-height: 420px;
     overflow: auto;
     background: #fff;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.12);
+    border: 1px solid #e4e7ec;
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(16, 24, 40, 0.14);
 `
 
 const Status = styled.div`
@@ -71,8 +99,12 @@ const ResultButton = styled.button`
     cursor: pointer;
     font: inherit;
 
+    &:first-of-type {
+        border-top: 0;
+    }
+
     &:hover {
-        background: #f9fafb;
+        background: color-mix(in srgb, var(--app-accent) 8%, #fff);
     }
 `
 
@@ -157,6 +189,7 @@ export const GlobalSearch: FC<GlobalSearchProps> = ({ className }) => {
 
     return (
         <Wrapper className={ className }>
+            <SearchIcon/>
             <SearchInput
                 type="search"
                 value={ query }

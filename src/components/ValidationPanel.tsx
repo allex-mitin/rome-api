@@ -36,10 +36,10 @@ const plural = (count: number, [one, few, many]: [string, string, string]): stri
 };
 
 const Panel = styled.div<{ $hasErrors: boolean }>`
-    margin: 8px 16px 0;
+    margin: 12px var(--app-gutter) 0;
     border: 1px solid ${({ $hasErrors }) => ($hasErrors ? '#fda29b' : '#fedf89')};
     background: ${({ $hasErrors }) => ($hasErrors ? '#fef3f2' : '#fffaeb')};
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 13px;
     overflow: hidden;
 `
@@ -50,7 +50,7 @@ const Header = styled.button`
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 8px 12px;
+    padding: 9px 12px;
     border: 0;
     background: transparent;
     cursor: pointer;
@@ -70,18 +70,24 @@ const Toggle = styled.span`
 
 const List = styled.ul`
     margin: 0;
-    padding: 0 12px 10px;
+    padding: 0 10px 10px;
     list-style: none;
     max-height: 240px;
     overflow: auto;
 `
 
+// Zebra rows instead of a rule above every entry: a long diagnostics list stays readable
+// without a stack of horizontal lines.
 const Row = styled.li`
     display: flex;
     align-items: baseline;
     gap: 8px;
-    padding: 4px 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 4px 8px;
+    border-radius: 8px;
+
+    &:nth-child(odd) {
+        background: rgba(255, 255, 255, 0.6);
+    }
 `
 
 const Severity = styled.span<{ $severity: DiagnosticSeverity }>`

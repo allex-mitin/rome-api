@@ -2,9 +2,38 @@ import { DocumentationType } from "../models/DocumentationType";
 import type { Service, Settings, Spec } from "../types";
 import yaml from 'js-yaml'
 
-export const Services = async () => {
-    await loadYamlSettings()
-    return window.settings().services
+let resolvedSettings: Settings | null = null
+
+/**
+ * The effective settings: the YAML file when it is available, the `window.settings` fallback
+ * (provided by `public/settings.js`) otherwise.
+ */
+export const getSettings = async (): Promise<Settings | null> => {
+    const yamlSettings = await loadYamlSettings()
+    if (yamlSettings !== null) {
+        resolvedSettings = yamlSettings
+        return yamlSettings
+    }
+    try {
+        resolvedSettings = window.settings?.() ?? null
+    } catch {
+        // A broken `settings.js` must not take the whole app down.
+        resolvedSettings = null
+    }
+    return resolvedSettings
+}
+
+/**
+ * The settings that have already been read, without awaiting.
+ *
+ * Every route that renders a spec goes through `serviceLoader`, which awaits `getSettings`, so by the
+ * time a renderer is mounted this is filled in. Callers must still cope with `null` (the first paint
+ * of the app, a route without a loader) — there the renderers fall back to their built-in defaults.
+ */
+export const getLoadedSettings = (): Settings | null => resolvedSettings
+
+export const Services = async (): Promise<Service[]> => {
+    return (await getSettings())?.services ?? []
 }
 
 export const getService = async (path: string | undefined) => {
@@ -29,19 +58,34 @@ const loadSettingsFile = async (link: string): Promise<Settings | null> => {
     return settings as Settings
 }
 
-const loadYamlSettings = async () => {
-    try {
-        // `settings.yml` has priority, `settings.yaml` is kept as a legacy fallback.
-        const settings = (await loadSettingsFile('settings.yml')) ?? (await loadSettingsFile('settings.yaml'))
+let settingsPromise: Promise<Settings | null> | null = null
 
-        if (settings !== null) {
-            window.settings = () => settings
-        }
-    } catch {
-        // If YAML settings are unavailable we keep whatever `window.settings` already provides
-        // (e.g. the `public/settings.js` fallback).
-        return null
+/**
+ * Reads the settings file once per page load.
+ *
+ * It is not a build artifact: it is served next to the frontend and edited by the deployment
+ * (service list, header branding). The navigator, the service loaders, the global search and the
+ * header all need it, so the promise is shared instead of fetching the same file several times.
+ */
+const loadYamlSettings = (): Promise<Settings | null> => {
+    if (settingsPromise === null) {
+        settingsPromise = (async () => {
+            try {
+                // `settings.yml` has priority, `settings.yaml` is kept as a legacy fallback.
+                const settings = (await loadSettingsFile('settings.yml')) ?? (await loadSettingsFile('settings.yaml'))
+
+                if (settings !== null) {
+                    window.settings = () => settings
+                }
+                return settings
+            } catch {
+                // If YAML settings are unavailable we keep whatever `window.settings` already provides
+                // (e.g. the `public/settings.js` fallback).
+                return null
+            }
+        })()
     }
+    return settingsPromise
 }
 
 export const hasOpenApi = (service: Service | undefined): boolean => {

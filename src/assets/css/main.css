@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+:root {
+  /* The design system ships the font face (`FontsVTBGroup`); everything outside its
+     typography components (search field, sidebar, spec renderers) inherits it from here. */
+  --app-font-family: var(--admiral-font-family, 'VTB Group UI', sans-serif);
+
+  /* Replaced at runtime from `branding.accentColor` (see `applyDocumentBranding`). */
+  --app-accent: #4696e5;
+
+  /* One inset for everything that lives in the content column: the toolbar and both spec
+     renderers use it, so their left edges line up. */
+  --app-gutter: 32px;
+
+  --app-surface: #ffffff;
+  --app-text: #101828;
+  --app-text-muted: #667085;
+  --app-hover: rgba(16, 24, 40, 0.05);
+  --app-radius: 14px;
+  /* Kept for the renderer stylesheets (`.scheme-container` backgrounds and friends). */
+  --app-toolbar: #fbfcfe;
+  --app-shadow-surface: 0 1px 2px rgba(16, 24, 40, 0.04), 0 18px 44px -34px rgba(16, 24, 40, 0.45);
+}
+
 html, body{
   margin: 0;
   padding: 0;
@@ -7,26 +29,41 @@ html, body{
   height: 100%;
 }
 
-.swagger-ui {
-  max-width: none;
-  padding: 0;
-  margin: 0;
-  width: 100%;
+body {
+  font-family: var(--app-font-family);
+  color: var(--app-text);
+  /* The page itself is the surface: the spec flows on it instead of sitting in a card. */
+  background: var(--app-surface);
+  -webkit-font-smoothing: antialiased;
 }
 
-.swagger-ui .wrapper {
-  max-width: none;
-  width: 100%;
+#root {
+  height: 100%;
 }
 
-.swagger-ui .container {
-  margin: 0;
-  padding: 0;
-  width: 100%;
+/* Thin, unobtrusive scrollbars: the spec panes and the service list scroll a lot. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 24, 40, 0.2) transparent;
 }
 
-.swagger-ui .swagger-container {
-  width: 100%;
-  margin: 0;
-  padding: 0;
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-color: rgba(16, 24, 40, 0.18);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(16, 24, 40, 0.32);
+  background-clip: content-box;
 }

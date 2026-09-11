@@ -7,6 +7,7 @@ import { LoadingSpec } from '../components/LoadingSpec';
 import { ValidationPanel } from '../components/ValidationPanel';
 import { loadSpecDiagnostics } from '../helpers/specValidation';
 import type { Diagnostic } from '../helpers/specValidation';
+import type { OpenApiOptions } from '../types';
 
 const PageWrapper = styled.div`
     display: flex;
@@ -14,7 +15,11 @@ const PageWrapper = styled.div`
     width: 100%;
 `
 
-export const SwaggerPage: FC<{ url: string | undefined | null }> = ({ url }) => {
+export const SwaggerPage: FC<{
+    url: string | undefined | null
+    /** Merged `renderers.openapi` and the spec's own options — see `helpers/rendererOptions`. */
+    options?: OpenApiOptions
+}> = ({ url, options }) => {
     const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([])
     // Set by the global search when it jumps to a concrete operation. swagger-ui reads the hash only
     // on mount and does not listen to `hashchange`, so a same-page jump needs a remount.
@@ -44,10 +49,12 @@ export const SwaggerPage: FC<{ url: string | undefined | null }> = ({ url }) => 
         return <LoadingSpec withError={true}/>
     }
 
+    // Options read from the settings file are spread first: `url` and `key` belong to the app, so
+    // they are applied last and the config cannot hijack which spec is rendered.
     return (
         <PageWrapper>
             <ValidationPanel diagnostics={ diagnostics }/>
-            <SwaggerUI key={ jumpToken ?? 'initial' } url={ url } docExpansion="list" deepLinking/>
+            <SwaggerUI { ...options } key={ jumpToken ?? 'initial' } url={ url }/>
         </PageWrapper>
     )
 };

@@ -11,6 +11,7 @@ import { fromURL, ParseOutput, Parser } from "@asyncapi/parser";
 import { ValidationPanel } from "./ValidationPanel";
 import { fromSpectralDiagnostic } from "../helpers/specValidation";
 import { htmlInsteadOfSpec, isHtmlPage } from "../helpers/specBundler";
+import type { AsyncApiOptions } from "../types";
 
 const customFileResolver = (url: Uri) => {
     return fetch(url.path())
@@ -32,31 +33,10 @@ const parser = new Parser({
     }
 });
 
-const asyncApiConfig = {
-    schemaID: "asyncapi",
-    show: {
-        sidebar: false,
-        info: true,
-        servers: true,
-        operations: true,
-        messages: true,
-        messageExamples: true,
-        schemas: true,
-        errors: true
-    },
-    expand: {
-        messageExamples: false,
-    },
-    sidebar: {
-        showServers: 'byDefault',
-        showOperations: 'byDefault',
-        useChannelAddressAsIdentifier: true,
-    },
-    parserOptions: {}
-};
-
 interface AsyncApiContainerProps {
     url: string;
+    /** Merged `renderers.asyncapi` and the spec's own options — see `helpers/rendererOptions`. */
+    options?: AsyncApiOptions;
 }
 
 const AsyncApiContainerWrapper = styled.div`
@@ -71,7 +51,7 @@ const AsyncApiContainerSpinnerWrapper = styled.div`
     align-items: center;
 `
 
-export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url }) => {
+export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url, options }) => {
     const [result, setResult] = useState<ParseOutput | undefined>(undefined)
     const [failure, setFailure] = useState<string | null>(null)
 
@@ -127,7 +107,7 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url }) => {
         <AsyncApiContainerWrapper>
             <ValidationPanel diagnostics={ diagnostics }/>
             { result.document
-                ? <AsyncApi schema={ result.document } config={ asyncApiConfig }/>
+                ? <AsyncApi schema={ result.document } config={ options }/>
                 : (
                     <AsyncApiContainerSpinnerWrapper>
                         <div>Спецификацию не удалось разобрать — список проблем выше.</div>

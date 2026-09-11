@@ -4,6 +4,61 @@
 #   versions/    — несколько версий спецификации, переиспользующих общие файлы
 #   invalid/     — спецификации с ошибками валидации (панель валидации)
 #   missing/     — файлов нет намеренно: сервис демонстрирует несуществующую спеку (404)
+
+# Брендирование шапки. Секция необязательна: всё, что здесь не указано, берётся из значений
+# по умолчанию (`src/helpers/branding.ts`). Файл читается браузером при загрузке страницы и лежит
+# рядом со сборкой, поэтому шапку можно перебрендировать под свою организацию без пересборки —
+# достаточно отредактировать этот файл и перезагрузить страницу.
+branding:
+  title: Rome API
+  subtitle: View API documentation service
+  # logo: /branding/logo.svg  # адрес картинки; иначе используется логотип, вшитый в сборку
+  # logoAlt: ACME
+  # logoHeight: 32            # высота логотипа в пикселях
+  # link: /                   # куда ведут логотип и название; внешний URL откроется в новой вкладке
+  # background: "#f8fafc"      # фон шапки: цвет, градиент или url(...); по умолчанию чуть темнее страницы
+  # textColor: "#101828"
+  # accentColor: "#4696e5"    # выбранный сервис, рамка поиска в фокусе, ховер в выдаче
+  # documentTitle: Rome API   # заголовок вкладки браузера
+  # favicon: /branding/favicon.ico
+
+# Настройки рендереров. Секция необязательна: значения ниже — дефолты приложения
+# (`src/helpers/rendererOptions.ts`). Их можно переопределить здесь — сразу для всех сервисов —
+# либо у конкретной спеки, в её секции `options` (пример — сервис `multi-file` ниже).
+renderers:
+  # Прокидывается в <SwaggerUI> (swagger-ui-react). Он передаёт рендереру фиксированный список
+  # пропсов, всё остальное молча отбрасывается (maxDisplayedTags, fn, syntaxHighlight — мимо).
+  # Ключи-функции и массивы (presets, plugins, requestInterceptor, onComplete) — только для settings.js.
+  openapi:
+    docExpansion: list              # list | full | none
+    filter: true                    # встроенный фильтр по тегам
+    defaultModelsExpandDepth: -1    # -1 — секция Models закрыта (важно для больших спек)
+    deepLinking: true
+    # tryItOutEnabled: true
+    # supportedSubmitMethods: [get, post, put, delete]
+    # displayOperationId: true
+    # persistAuthorization: true
+  # Прокидывается в config компонента @asyncapi/react-component.
+  asyncapi:
+    schemaID: asyncapi
+    show:
+      sidebar: false
+      info: true
+      servers: true
+      operations: true
+      messages: true
+      messageExamples: true
+      schemas: true
+      errors: true
+    # expand:
+    #   messageExamples: true
+    # sidebar:
+    #   showServers: byDefault      # byDefault | bySpecTags | byServersTags
+    #   showOperations: byDefault   # byDefault | bySpecTags | byOperationsTags
+    #   useChannelAddressAsIdentifier: true
+    # publishLabel: Отправить
+    # subscribeLabel: Подписаться
+
 services:
   - path: "single-file"
     name: Спека одним файлом
@@ -15,6 +70,8 @@ services:
     name: Спека из нескольких файлов
     openapi:
       url: /test/multi-file/openapi.yaml
+      # options:                  # переопределяет renderers.openapi только для этой спеки
+      #   docExpansion: full      # ключи сливаются рекурсивно
     asyncapi:
       url: /test/multi-file/asyncapi.yaml
   - path: "versions"

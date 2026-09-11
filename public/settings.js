@@ -2,6 +2,22 @@
 // cannot be loaded (see src/helpers/index.ts). Keep it in sync with settings.yml.
 window.settings = () => {
     return {
+        // Брендирование шапки; ключи можно опускать — см. `src/helpers/branding.ts`.
+        "branding": {
+            "title": "Rome API",
+            "subtitle": "View API documentation service"
+        },
+        // Настройки рендереров; ключи можно опускать — см. `src/helpers/rendererOptions.ts`.
+        "renderers": {
+            "openapi": {
+                "docExpansion": "list",
+                "filter": true,
+                "deepLinking": true
+            },
+            "asyncapi": {
+                "schemaID": "asyncapi"
+            }
+        },
         "services": [
             {
                 "path": "single-file",
