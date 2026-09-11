@@ -1,9 +1,8 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { Logo } from './Logo';
 import { T } from '@admiral-ds/react-ui';
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
-import { SpecToggle } from "./SpecToggle";
 
 const HeaderWrapper = styled.div`
     display: flex;

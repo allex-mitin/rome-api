@@ -1,3 +1,5 @@
+// Fallback configuration. It is used only when `settings.yml` / `settings.yaml`
+// cannot be loaded (see src/helpers/index.ts).
 window.settings = () => {
     return {
         "services": [
@@ -7,8 +9,8 @@ window.settings = () => {
                 "openapi": {
                     "url": "/test/openapi.json",
                     "urls": {
-                        "0.0.1": "/test/0.0.1/openapi.json",
-                        "0.0.2": "/test/0.0.2/openapi.json"
+                        "0.0.1": "/test/versions/openapi-0.0.1.json",
+                        "0.0.2": "/test/versions/openapi-0.0.2.json"
                     }
                 },
                 "asyncapi": {
@@ -22,7 +24,7 @@ window.settings = () => {
                     "url": "/test/openapi.json"
                 },
                 "asyncapi": {
-                    "url": "/test/asyncapi.yml"
+                    "url": "/test/asyncapi-v3.yml"
                 }
             },
             {

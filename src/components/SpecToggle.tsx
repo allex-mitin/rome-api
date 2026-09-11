@@ -1,8 +1,8 @@
-import React, { FC } from 'react';
-import {NavLink, useLoaderData, useNavigate, useParams} from 'react-router-dom';
+import { FC } from 'react';
+import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
 import styled from "styled-components";
 import { ContentSwitcher, ContentSwitcherItem } from "@admiral-ds/react-ui";
-import { getService, Services } from "../helpers";
+import type { Service } from "../types";
 
 
 const SpecToggleWrapper = styled.div`
@@ -16,16 +16,16 @@ export const SpecToggle: FC = () => {
     const service = useLoaderData() as Service
     const { documentation } = useParams()
 
-    const items = []
-    if(service?.openapi) items.push({ id: 'openapi', title: 'OpenAPI'})
-    if(service?.asyncapi) items.push({ id: 'asyncapi', title: 'AsyncAPI'})
+    const items: { id: string; title: string }[] = []
+    if (service?.openapi) items.push({ id: 'openapi', title: 'OpenAPI' })
+    if (service?.asyncapi) items.push({ id: 'asyncapi', title: 'AsyncAPI' })
 
-    if(items.length === 0){
+    if (items.length === 0) {
         return null;
     }
 
     const handleToggleClick = (tabId: string) => {
-        navigate(`/service/${service.path}/${tabId}`)
+        navigate(`/service/${ service.path }/${ tabId }`)
     }
 
 

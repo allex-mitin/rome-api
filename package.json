@@ -5,10 +5,14 @@
   "readmeFilename": "README.md",
   "private": false,
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "lint": "eslint --ext .js,.ts,.tsx src",
     "lint:fix": "npm run lint -- --fix",
     "start": "vite serve --host=0.0.0.0",
+    "dev": "vite serve --host=0.0.0.0",
     "types": "tsc",
     "build": "vite build",
     "preview": "vite preview"
@@ -17,30 +21,35 @@
     "@admiral-ds/fonts": "^2.0.0",
     "@admiral-ds/icons": "^4.3.9",
     "@admiral-ds/react-ui": "^8.52.2",
+    "@asyncapi/parser": "^3.4.0",
     "@asyncapi/react-component": "2.6.3",
-    "@vitejs/plugin-react": "^4.2.1",
     "buffer": "^6.0.3",
     "classnames": "^2.5.1",
-    "compare-versions": "^6.1.0",
+    "js-yaml": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-headroom": "^3.2.1",
     "react-router-dom": "^6.22.2",
+    "styled-components": "^6.1.19",
     "swagger-ui": "^5.25.4",
     "swagger-ui-react": "^5.25.4",
-    "vite": "^5.1.4",
-    "vite-plugin-html-inject": "^1.1.2",
     "vite-plugin-node-polyfills": "^0.24.0"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.11.24",
     "@types/react": "^18.2.61",
     "@types/react-dom": "^18.2.19",
-    "@types/react-headroom": "^3.2.3",
     "@types/swagger-ui-react": "^5.18.0",
+    "@types/urijs": "^1.19.25",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
     "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vite": "^5.1.4"
   }
 }

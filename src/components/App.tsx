@@ -1,6 +1,12 @@
-import React, {FC, useEffect, useState} from 'react';
+import { FC } from 'react';
 import { ThemeProvider } from 'styled-components';
-import { createBrowserRouter, createRoutesFromElements, redirect, Route } from 'react-router-dom';
+import {
+    createBrowserRouter,
+    createRoutesFromElements,
+    redirect,
+    Route,
+    type LoaderFunctionArgs
+} from 'react-router-dom';
 import { Layout } from "./Layout";
 import { RouterProvider } from "react-router";
 import { WelcomePage } from "../pages/WelcomePage";
@@ -11,11 +17,9 @@ import { Documentation } from "./Documentation";
 import { FontsVTBGroup, LIGHT_THEME } from '@admiral-ds/react-ui';
 
 
-
-
 export const App: FC = () => {
     const routes = createRoutesFromElements([
-        <Route path="/" element={ <Layout/> }>
+        <Route key="root" path="/" element={ <Layout/> }>
             <Route index element={ <WelcomePage/> }/>
             <Route path="/home" element={ <WelcomePage/> }/>
             <Route path="/service/:serviceName" element={ <Service/> } loader={ serviceLoader }>
@@ -28,7 +32,10 @@ export const App: FC = () => {
             <Route path="*" element={ <ErrorPage/> }/>
         </Route>
     ])
-    const router = createBrowserRouter(routes)
+    const router = createBrowserRouter(routes, {
+        // Supports deployment under a sub-path (see `base` in vite.config.ts).
+        basename: import.meta.env.BASE_URL,
+    })
 
     return (
         <ThemeProvider theme={ LIGHT_THEME }>
@@ -38,12 +45,12 @@ export const App: FC = () => {
     )
 };
 
-export const serviceLoader = async ({ params }: { params: any }) => {
+export const serviceLoader = async ({ params }: LoaderFunctionArgs) => {
     return getService(params.serviceName);
 }
 
-export const defaultDocumentation = async ({ params }: { params: any }) => {
-    const service =  await getService(params.serviceName)
+export const defaultDocumentation = async ({ params }: LoaderFunctionArgs) => {
+    const service = await getService(params.serviceName)
     if (hasOpenApi(service)) {
         return redirect("./openapi")
     }

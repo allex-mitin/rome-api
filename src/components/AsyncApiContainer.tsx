@@ -1,13 +1,12 @@
 import type { FC } from 'react';
 import { useEffect, useState } from "react";
-// @ts-expect-error - TODO
+// @ts-expect-error - the browser bundle of the asyncapi react component ships without types
 import AsyncApi from '@asyncapi/react-component/browser';
 import styled from "styled-components";
 import { Spinner } from '@admiral-ds/react-ui';
 import type Uri from 'urijs';
 
 import { fromURL, ParseOutput, Parser } from "@asyncapi/parser";
-import { AsyncAPIDocumentInterface } from "@asyncapi/parser/esm/models";
 
 const customFileResolver = (url: Uri) => {
     return fetch(url.path())
@@ -87,12 +86,12 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url }) => {
         )
     }
 
-    if(!result.document && result?.diagnostics && result?.diagnostics.length > 0){
+    if (!result.document && result?.diagnostics && result?.diagnostics.length > 0) {
         return (
             <AsyncApiContainerSpinnerWrapper>
-                { result.diagnostics.map((item) => (
-                    <div>{ JSON.stringify( item ) }</div>
-                ))}
+                { result.diagnostics.map((item, index) => (
+                    <div key={ index }>{ JSON.stringify(item) }</div>
+                )) }
             </AsyncApiContainerSpinnerWrapper>
         )
     }

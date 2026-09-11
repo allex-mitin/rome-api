@@ -1,0 +1,36 @@
+# Example nginx config for the RomeAPI static build.
+#
+# Layout on the server:
+#   /usr/share/nginx/html/          <- contents of the `build/` directory
+#   /usr/share/nginx/html/test/     <- your API spec files (optional)
+#   /usr/share/nginx/html/settings.yml
+#
+# `createBrowserRouter` uses real paths (/service/:serviceName/...), so the
+# SPA fallback (`try_files ... /index.html`) is REQUIRED, otherwise a direct
+# link or a page reload returns 404.
+
+server {
+    listen       80;
+    server_name  rome-api.local;
+    root         /usr/share/nginx/html;
+    index        index.html;
+
+    # SPA fallback for react-router routes.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Specs and the settings file must not be cached aggressively: they are
+    # updated independently of the frontend build.
+    location ~* \.(json|ya?ml)$ {
+        add_header Cache-Control "no-cache";
+        try_files $uri =404;
+    }
+
+    # Hashed build artifacts can be cached forever.
+    location ~* \.(js|css|woff2?|ttf|eot|png|webp|svg|ico)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+}

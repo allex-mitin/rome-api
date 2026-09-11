@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { Header } from './Header';
 import { Navigator } from "./Navigator";
 import { Outlet } from "react-router";

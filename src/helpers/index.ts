@@ -1,4 +1,5 @@
 import { DocumentationType } from "../models/DocumentationType";
+import type { Service, Settings, Spec } from "../types";
 import yaml from 'js-yaml'
 
 export const Services = async () => {
@@ -14,32 +15,31 @@ export const getService = async (path: string | undefined) => {
     return services.find(s => s.path === path)
 }
 
-const loadYamlSettingsGwowingUp = async (link: string) => {
-    // сами со слешом передавайте
-    let response = await fetch(`/${ link }`)
-    let text = await response.text();
-    let settings = yaml.load(text) as Settings
-
-    if (typeof settings === 'string') {
+const loadSettingsFile = async (link: string): Promise<Settings | null> => {
+    const response = await fetch(`/${ link }`)
+    if (!response.ok) {
         return null
-    } else {
-        return settings
     }
+    const text = await response.text()
+    const settings = yaml.load(text)
+
+    if (settings === null || typeof settings !== 'object') {
+        return null
+    }
+    return settings as Settings
 }
 
 const loadYamlSettings = async () => {
     try {
-        // простите
-        let settings = await loadYamlSettingsGwowingUp('settings.yml');
-        if (settings === null) {
-            settings = await loadYamlSettingsGwowingUp('settings.yaml');
-        }
+        // `settings.yml` has priority, `settings.yaml` is kept as a legacy fallback.
+        const settings = (await loadSettingsFile('settings.yml')) ?? (await loadSettingsFile('settings.yaml'))
 
         if (settings !== null) {
             window.settings = () => settings
         }
-    } catch (error) {
-        // всё равно не поможет, так прост чтоб было
+    } catch {
+        // If YAML settings are unavailable we keep whatever `window.settings` already provides
+        // (e.g. the `public/settings.js` fallback).
         return null
     }
 }
@@ -75,9 +75,9 @@ export const getSpecification = (service: Service | undefined, documentation: st
         spec(): Spec | null {
             switch (this.type()) {
                 case DocumentationType.OPENAPI:
-                    return service?.openapi
+                    return service.openapi ?? null
                 case DocumentationType.ASYNCAPI:
-                    return service?.asyncapi
+                    return service.asyncapi ?? null
                 default:
                     return null;
             }
@@ -85,9 +85,11 @@ export const getSpecification = (service: Service | undefined, documentation: st
         urls(): Map<string, string> {
             const spec = this.spec();
             const urls = new Map<string, string>
-            if (spec?.url) urls.set("default", spec.url)
+            if (spec?.url) {
+                urls.set("default", spec.url)
+            }
             if (spec?.urls) {
-                Object.entries(spec?.urls).forEach(([key, value]) => {
+                Object.entries(spec.urls).forEach(([key, value]) => {
                     urls.set(key, value)
                 })
             }
@@ -125,5 +127,3 @@ export const getSpecification = (service: Service | undefined, documentation: st
 
     }
 }
-
-

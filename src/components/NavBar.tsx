@@ -1,11 +1,10 @@
-import React, {FC} from 'react';
+import { FC } from 'react';
 import styled from "styled-components";
-import {SpecToggle} from "./SpecToggle";
-import {SpecVersion} from "./SpecVersion";
-import {Service} from "./Service";
-import {useLoaderData} from "react-router-dom";
-import {ButtonGroup} from "@admiral-ds/react-ui";
-import {NavBarButtons} from "./NavBarButtons";
+import { SpecToggle } from "./SpecToggle";
+import { SpecVersion } from "./SpecVersion";
+import { useLoaderData } from "react-router-dom";
+import { NavBarButtons } from "./NavBarButtons";
+import type { Service } from "../types";
 
 const NavigatorWrapper = styled.div`
     box-sizing: border-box;
@@ -17,10 +16,10 @@ const NavigatorWrapper = styled.div`
     align-items: center;
 `
 const ServiceName = styled.div`
-    width: auto; 
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
+    width: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-weight: bold;
 `
 

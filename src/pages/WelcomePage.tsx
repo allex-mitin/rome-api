@@ -14,7 +14,7 @@ const WelcomePageWrapper = styled.div`
         display: flex;
         flex-grow: 1;
         justify-content: center;
-        
+
         #openapiID {
             width: 300px;
         }
@@ -29,12 +29,12 @@ export const WelcomePage: FC = () => {
     return (
         <WelcomePageWrapper>
             <div>
-                <a href={ 'https://www.openapis.org/' } target={'_blank'}>
+                <a href={ 'https://www.openapis.org/' } target={'_blank'} rel="noreferrer">
                     <img src={openapi} id={'openapiID'}/>
                 </a>
             </div>
             <div>
-                <a href={ 'https://www.asyncapi.com/en' } target={'_blank'}>
+                <a href={ 'https://www.asyncapi.com/en' } target={'_blank'} rel="noreferrer">
                     <img src={ asyncapi } id={'asyncapiID'}/>
                 </a></div>
         </WelcomePageWrapper>

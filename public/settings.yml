@@ -12,7 +12,6 @@ services:
       urls:
         "0.0.1": "/test/versions/openapi-0.0.1.json"
         "0.0.2": "/test/versions/openapi-0.0.2.json"
-        "0.0.3": "/test/versions/openapi-0.0.3.json"
     asyncapi:
       url: /test/asyncapi-v3.yml
   - path: "service3"

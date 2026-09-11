@@ -1,4 +1,4 @@
-import React, { FC, forwardRef, ReactNode, useEffect, useMemo, useState } from 'react';
+import { FC, forwardRef, ReactNode, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import {
     MenuItem,
@@ -11,6 +11,7 @@ import {
     VerticalTabProps
 } from '@admiral-ds/react-ui';
 import { Services } from "../helpers";
+import type { Service } from "../types";
 import styled from "styled-components";
 
 
@@ -21,10 +22,13 @@ interface TabContentProps extends VerticalTabProps {
     icon?: ReactNode;
 }
 
-interface CustomVerticalTabProps extends TabContentProps {
+interface ServiceTab {
+    text: string;
+    tabId: string;
+    disabled?: boolean;
 }
 
-const CustomVerticalTab = forwardRef<HTMLButtonElement, CustomVerticalTabProps>(
+const CustomVerticalTab = forwardRef<HTMLButtonElement, TabContentProps>(
     (
         {
             dimension = 'l',
@@ -36,7 +40,7 @@ const CustomVerticalTab = forwardRef<HTMLButtonElement, CustomVerticalTabProps>(
             tabId,
             text,
             ...props
-        }: CustomVerticalTabProps,
+        }: TabContentProps,
         ref,
     ) => {
         return (
@@ -65,11 +69,7 @@ const CustomVerticalTab = forwardRef<HTMLButtonElement, CustomVerticalTabProps>(
     },
 );
 
-
-// tabs.unshift({
-//     text: 'Главная',
-//     tabId: '/'
-// })
+CustomVerticalTab.displayName = 'CustomVerticalTab';
 
 
 const MenuItemWrapper = styled.div`
@@ -94,23 +94,18 @@ export const Navigator: FC = () => {
     const navigate = useNavigate();
     const path = useParams()
 
-    const [services, setService] = useState([])
-    const [tabs, setTabs] = useState([])
+    const [services, setServices] = useState<Service[]>([])
+    const [tabs, setTabs] = useState<ServiceTab[]>([])
 
     useEffect(() => {
         Services().then((data) => {
-            console.log('data', data);
-            setService(() => {
-                return data
-            })
-            setTabs(() => {
-                return (data || []).map((item) => {
-                    return {
-                        text: item.name,
-                        tabId: item.path
-                    }
-                })
-            })
+            setServices(data)
+            setTabs((data || []).map((item) => {
+                return {
+                    text: item.name,
+                    tabId: item.path
+                }
+            }))
         })
     }, []);
 
@@ -120,6 +115,9 @@ export const Navigator: FC = () => {
 
     const handleSelectTab = (tabId: string) => {
         const currentTab = services.find((tab) => tab.path === tabId);
+        if (!currentTab) {
+            return;
+        }
         navigate(`/service/${ currentTab.path }`)
     };
 
@@ -144,7 +142,7 @@ export const Navigator: FC = () => {
     const renderDropMenuItem = (tabId: string) => {
         const currentTab = tabs.find((tab) => tab.tabId === tabId);
 
-        return (options: RenderOptionProps) => {
+        return function DropMenuItem(options: RenderOptionProps) {
             return (
                 <MenuItem  { ...options } key={ tabId }>
                     <MenuItemWrapper>

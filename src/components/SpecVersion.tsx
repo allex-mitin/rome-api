@@ -1,8 +1,9 @@
-import {FC} from "react";
+import { FC } from "react";
 import styled from "styled-components";
-import {useLoaderData, useNavigate, useParams} from "react-router-dom";
-import {Select, Option} from "@admiral-ds/react-ui";
-import {getSpecification} from "../helpers";
+import { useLoaderData, useNavigate, useParams } from "react-router-dom";
+import { Select, Option } from "@admiral-ds/react-ui";
+import { getSpecification } from "../helpers";
+import type { Service } from "../types";
 
 
 const SpecVersionWrapper = styled.div`
@@ -25,19 +26,19 @@ export const SpecVersion: FC = () => {
         const serviceName = params.serviceName;
         const documentation = params.documentation
         const version = e.target.value
-        navigate(`/service/${serviceName}/${documentation}/${version}`)
+        navigate(`/service/${ serviceName }/${ documentation }/${ version }`)
     }
 
     return (
         <SpecVersionWrapper>
-            <Select mode="select"  dimension="s" value={value} onChange={handleChangeVersion} >
-                    {
-                        Array.from(urls.entries()).map(([key, _]) => (
-                            <Option value={key} key={key}>{key}</Option>
-                        ))
-                    }
-        </Select>
-</SpecVersionWrapper>
-)
-    ;
+            <Select mode="select" dimension="s" value={ value } onChange={ handleChangeVersion }>
+                {
+                    Array.from(urls.entries()).map(([key]) => (
+                        <Option value={ key } key={ key }>{ key }</Option>
+                    ))
+                }
+            </Select>
+        </SpecVersionWrapper>
+    )
+        ;
 };
