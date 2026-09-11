@@ -31,7 +31,11 @@ npm run lint       # ESLint
 npm run lint:fix
 npm run build      # сборка в ./build
 npm run preview    # локальный просмотр собранной статики
+npm run analyze    # прод-сборка + отчёт о бандле (build/stats.html и stats.json)
 ```
+
+`npm run analyze` печатает разбивку бандла по чанкам и пакетам — им и надо проверять,
+не вырос ли бандл после очередной зависимости.
 
 Демо-спецификации лежат в `public/test/` и используются конфигом по умолчанию.
 
