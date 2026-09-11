@@ -1,5 +1,5 @@
 import {createRoot} from 'react-dom/client';
-import '@asyncapi/react-component/styles/default.css';
+import '@asyncapi/react-component/styles/default.min.css';
 import 'swagger-ui-react/swagger-ui.css';
 import './assets/css/main.css';
 

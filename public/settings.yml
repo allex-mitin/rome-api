@@ -28,3 +28,10 @@ services:
     name: Сервис4
     openapi:
     asyncapi:
+  # Демо-фикстуры с намеренно битыми спеками — нужны, чтобы проверять панель валидации.
+  - path: "broken"
+    name: Битые спеки (проверка валидации)
+    openapi:
+      url: /test/broken/openapi.json
+    asyncapi:
+      url: /test/broken/asyncapi.yml

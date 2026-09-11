@@ -8,6 +8,9 @@ import type Uri from 'urijs';
 
 import { fromURL, ParseOutput, Parser } from "@asyncapi/parser";
 
+import { ValidationPanel } from "./ValidationPanel";
+import { fromSpectralDiagnostic } from "../helpers/specValidation";
+
 const customFileResolver = (url: Uri) => {
     return fetch(url.path())
         .then(value => {
@@ -69,14 +72,27 @@ const AsyncApiContainerSpinnerWrapper = styled.div`
 
 export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url }) => {
     const [result, setResult] = useState<ParseOutput | undefined>(undefined)
+    const [failure, setFailure] = useState<string | null>(null)
 
     useEffect(() => {
+        setFailure(null)
         fromURL(parser, url)
             .parse()
-            .then((result) => {
-                setResult(result)
+            .then((parsed) => {
+                setResult(parsed)
+            })
+            .catch((cause: unknown) => {
+                setFailure(cause instanceof Error ? cause.message : String(cause))
             })
     }, [url]);
+
+    if (failure) {
+        return (
+            <AsyncApiContainerWrapper>
+                <ValidationPanel diagnostics={ [{ severity: 'error', message: failure }] }/>
+            </AsyncApiContainerWrapper>
+        )
+    }
 
     if (!result) {
         return (
@@ -86,19 +102,20 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url }) => {
         )
     }
 
-    if (!result.document && result?.diagnostics && result?.diagnostics.length > 0) {
-        return (
-            <AsyncApiContainerSpinnerWrapper>
-                { result.diagnostics.map((item, index) => (
-                    <div key={ index }>{ JSON.stringify(item) }</div>
-                )) }
-            </AsyncApiContainerSpinnerWrapper>
-        )
-    }
+    // The parser reports problems even when it still managed to build a document,
+    // so the diagnostics are shown alongside a successfully rendered spec.
+    const diagnostics = result.diagnostics.map(fromSpectralDiagnostic)
 
     return (
         <AsyncApiContainerWrapper>
-            <AsyncApi schema={ result.document } config={ asyncApiConfig }/>
+            <ValidationPanel diagnostics={ diagnostics }/>
+            { result.document
+                ? <AsyncApi schema={ result.document } config={ asyncApiConfig }/>
+                : (
+                    <AsyncApiContainerSpinnerWrapper>
+                        <div>Спецификацию не удалось разобрать — список проблем выше.</div>
+                    </AsyncApiContainerSpinnerWrapper>
+                ) }
         </AsyncApiContainerWrapper>
     )
 };
