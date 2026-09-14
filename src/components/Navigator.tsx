@@ -1,7 +1,7 @@
 import { FC, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { SystemSearchOutline } from '@admiral-ds/icons';
+import { SearchIcon } from './icons';
 import { Services } from '../helpers';
 import type { Service } from '../types';
 
@@ -47,7 +47,7 @@ const FilterWrapper = styled.div`
     flex: 0 0 auto;
 `
 
-const FilterIcon = styled(SystemSearchOutline)`
+const FilterIcon = styled(SearchIcon)`
     position: absolute;
     top: 50%;
     left: 10px;

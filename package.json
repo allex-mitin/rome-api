@@ -19,9 +19,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@admiral-ds/fonts": "^2.0.0",
-    "@admiral-ds/icons": "^4.3.9",
-    "@admiral-ds/react-ui": "^8.52.2",
     "@asyncapi/parser": "^3.6.3",
     "@asyncapi/react-component": "^3.1.8",
     "buffer": "^6.0.3",

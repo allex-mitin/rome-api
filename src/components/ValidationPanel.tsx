@@ -36,6 +36,11 @@ const plural = (count: number, [one, few, many]: [string, string, string]): stri
 };
 
 const Panel = styled.div<{ $hasErrors: boolean }>`
+    // In the OpenAPI column the panel is a flex item sitting above the renderer. Its own
+    // overflow: hidden (needed for the rounded corners) zeroes the automatic minimum size of a flex
+    // item, so without this it gets squeezed to a couple of pixels whenever the rendered spec is
+    // taller than the viewport.
+    flex: 0 0 auto;
     margin: 12px var(--app-gutter) 0;
     border: 1px solid ${({ $hasErrors }) => ($hasErrors ? '#fda29b' : '#fedf89')};
     background: ${({ $hasErrors }) => ($hasErrors ? '#fef3f2' : '#fffaeb')};

@@ -1,6 +1,5 @@
 import { FC } from 'react';
 import { NavLink } from 'react-router-dom';
-import { T } from '@admiral-ds/react-ui';
 import styled, { css } from 'styled-components';
 import { Logo } from './Logo';
 import { GlobalSearch } from './GlobalSearch';
@@ -50,18 +49,27 @@ const BrandText = styled.div`
     min-width: 0;
 `;
 
-// The design system types the `color` prop of `T` as a palette name, while the colour comes from the
-// settings file, so it is applied through the mixin that is rendered last.
-const titleStyles = css`
+// The colour of both lines comes from the branding settings, so it is passed down as a prop instead
+// of being picked from a palette.
+const Title = styled.span<{ $color: string }>`
     display: block;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+    color: ${({ $color }) => $color};
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 `;
 
-const subtitleStyles = css`
+const Subtitle = styled.span<{ $color: string }>`
     display: block;
     margin-top: 2px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: ${({ $color }) => $color};
+    opacity: 0.72;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -78,16 +86,9 @@ export const Header: FC = () => {
         <>
             <Logo src={ branding.logo } alt={ branding.logoAlt } height={ branding.logoHeight }/>
             <BrandText>
-                <T font='Header/H5' cssMixin={ css`${ titleStyles } color: ${ branding.textColor };` }>
-                    { branding.title }
-                </T>
+                <Title $color={ branding.textColor }>{ branding.title }</Title>
                 { branding.subtitle && (
-                    <T
-                        font='Body/Body 2 Short'
-                        cssMixin={ css`${ subtitleStyles } color: ${ branding.textColor }; opacity: 0.72;` }
-                    >
-                        { branding.subtitle }
-                    </T>
+                    <Subtitle $color={ branding.textColor }>{ branding.subtitle }</Subtitle>
                 ) }
             </BrandText>
         </>

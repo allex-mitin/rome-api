@@ -20,6 +20,12 @@ export interface Diagnostic {
     message: string;
     /** Human-readable location, e.g. `paths./pet.get` or `components.schemas.Pet`. */
     location?: string;
+    /**
+     * The document cannot be shown at all: it was not fetched or parsed, or it is not an OpenAPI
+     * document. A renderer answers this with its own failure state instead of its raw English output;
+     * a spec that merely has problems keeps rendering, with the panel above it.
+     */
+    fatal?: boolean;
 }
 
 export interface SpecDiagnostics {
@@ -72,13 +78,14 @@ export const validateOpenApiDocument = (document: unknown): Diagnostic[] => {
     const diagnostics: Diagnostic[] = [];
 
     if (!isRecord(document)) {
-        return [{ severity: 'error', message: 'Документ спецификации не является объектом' }];
+        return [{ severity: 'error', message: 'Документ спецификации не является объектом', fatal: true }];
     }
 
     if (typeof document.swagger !== 'string' && typeof document.openapi !== 'string') {
         diagnostics.push({
             severity: 'error',
             message: 'Не найден ни `openapi`, ни `swagger` — документ не похож на OpenAPI-спецификацию',
+            fatal: true,
         });
     }
 
@@ -136,11 +143,11 @@ export const loadSpecDiagnostics = async (
     try {
         const response = await fetchFn(absolute);
         if (!response.ok) {
-            return { format, diagnostics: [{ severity: 'error', message: `Не удалось загрузить спецификацию: ${response.status}` }] };
+            return { format, diagnostics: [{ severity: 'error', message: `Не удалось загрузить спецификацию: ${response.status}`, fatal: true }] };
         }
         diagnostics.push(...validateOpenApiDocument(parseSpec(await response.text(), absolute)));
     } catch (cause) {
-        return { format, diagnostics: [{ severity: 'error', message: cause instanceof Error ? cause.message : String(cause) }] };
+        return { format, diagnostics: [{ severity: 'error', message: cause instanceof Error ? cause.message : String(cause), fatal: true }] };
     }
 
     // External references — a separate pass, so a broken link is reported without shifting `#/...` scopes.

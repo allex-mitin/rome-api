@@ -1,5 +1,4 @@
 import { FC, useEffect } from 'react';
-import { ThemeProvider } from 'styled-components';
 import {
     createBrowserRouter,
     createRoutesFromElements,
@@ -15,7 +14,6 @@ import { Service } from "./Service";
 import { getService, hasAsyncApi, hasOpenApi } from "../helpers";
 import { applyDocumentBranding, useBranding } from '../helpers/branding';
 import { Documentation } from "./Documentation";
-import { FontsVTBGroup, LIGHT_THEME } from '@admiral-ds/react-ui';
 
 
 export const App: FC = () => {
@@ -45,12 +43,7 @@ export const App: FC = () => {
         basename: import.meta.env.BASE_URL,
     })
 
-    return (
-        <ThemeProvider theme={ LIGHT_THEME }>
-            <FontsVTBGroup/>
-            <RouterProvider router={ router }/>
-        </ThemeProvider>
-    )
+    return (<RouterProvider router={ router }/>)
 };
 
 export const serviceLoader = async ({ params }: LoaderFunctionArgs) => {

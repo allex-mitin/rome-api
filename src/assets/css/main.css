@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  /* The design system ships the font face (`FontsVTBGroup`); everything outside its
-     typography components (search field, sidebar, spec renderers) inherits it from here. */
-  --app-font-family: var(--admiral-font-family, 'VTB Group UI', sans-serif);
+  /* The shell ships no webfont: the system stack keeps the viewer looking native everywhere and
+     removes any font-licensing question from the build. */
+  --app-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   /* Replaced at runtime from `branding.accentColor` (see `applyDocumentBranding`). */
   --app-accent: #4696e5;

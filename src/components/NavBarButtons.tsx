@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
-import { IconButton } from "@admiral-ds/react-ui";
-import { DocumentsCopyOutline, SystemDownloadOutline, SystemRefreshOutline } from '@admiral-ds/icons'
+import { CopyIcon, DownloadIcon, RefreshIcon } from "./icons";
+import { IconButton } from "./IconButton";
 import styled from "styled-components";
 import { useLoaderData, useNavigate, useParams } from "react-router-dom";
 import { getSpecification } from "../helpers";
@@ -10,10 +10,11 @@ import { DocumentationType } from "../models/DocumentationType";
 import type { Service } from "../types";
 
 const ButtonsWrapper = styled.div`
-    margin-left: auto;
+    // Grouped with the other controls by spacing alone — no divider line in the toolbar.
+    margin-left: 4px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
 `
 
 const ErrorText = styled.span`
@@ -72,23 +73,21 @@ export const NavBarButtons: FC = () => {
         <ButtonsWrapper>
             { error && <ErrorText title={ error }>Не удалось собрать спеку</ErrorText> }
             <IconButton
-                dimension='m'
                 disabled={ busy }
                 loading={ busy }
                 onClick={ handleDownload }
                 title="Скачать спеку целиком — все внешние $ref будут раскрыты в один файл"
             >
-                <SystemDownloadOutline/>
+                <DownloadIcon/>
             </IconButton>
             <IconButton
-                dimension='m'
                 disabled={ busy }
                 onClick={ handleCopy }
                 title="Скопировать спеку целиком в буфер обмена"
             >
-                <DocumentsCopyOutline/>
+                <CopyIcon/>
             </IconButton>
-            <IconButton dimension='m' onClick={ handleRefresh } title="Refresh"><SystemRefreshOutline/></IconButton>
+            <IconButton onClick={ handleRefresh } title="Refresh"><RefreshIcon/></IconButton>
         </ButtonsWrapper>
     )
 }

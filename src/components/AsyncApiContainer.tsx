@@ -3,12 +3,13 @@ import { useEffect, useState } from "react";
 // @ts-expect-error - the browser bundle of the asyncapi react component ships without types
 import AsyncApi from '@asyncapi/react-component/browser';
 import styled from "styled-components";
-import { Spinner } from '@admiral-ds/react-ui';
+import { Spinner } from './Spinner';
 import type Uri from 'urijs';
 
 import { fromURL, ParseOutput, Parser } from "@asyncapi/parser";
 
 import { ValidationPanel } from "./ValidationPanel";
+import { SpecFailure } from "./SpecFailure";
 import { fromSpectralDiagnostic } from "../helpers/specValidation";
 import { htmlInsteadOfSpec, isHtmlPage } from "../helpers/specBundler";
 import type { AsyncApiOptions } from "../types";
@@ -83,36 +84,34 @@ export const AsyncApiContainer: FC<AsyncApiContainerProps> = ({ url, options }) 
         }
     }, [url]);
 
+    // Nothing was fetched or parsed: the reason is the whole story, so it goes into our own failure
+    // state. Before, it was only inside a panel whose message is collapsed by default, which left the
+    // page looking empty.
     if (failure) {
-        return (
-            <AsyncApiContainerWrapper>
-                <ValidationPanel diagnostics={ [{ severity: 'error', message: failure }] }/>
-            </AsyncApiContainerWrapper>
-        )
+        return <SpecFailure url={ url } diagnostics={ [{ severity: 'error', message: failure, fatal: true }] }/>
     }
 
     if (!result) {
         return (
             <AsyncApiContainerSpinnerWrapper>
-                <Spinner dimension="xl"/>
+                <Spinner size="xl"/>
             </AsyncApiContainerSpinnerWrapper>
         )
     }
 
-    // The parser reports problems even when it still managed to build a document,
-    // so the diagnostics are shown alongside a successfully rendered spec.
     const diagnostics = result.diagnostics.map(fromSpectralDiagnostic)
 
+    // A parse result without a document has nothing to render.
+    if (!result.document) {
+        return <SpecFailure url={ url } diagnostics={ diagnostics }/>
+    }
+
+    // The parser reports problems even when it still managed to build a document,
+    // so the diagnostics are shown alongside a successfully rendered spec.
     return (
         <AsyncApiContainerWrapper>
             <ValidationPanel diagnostics={ diagnostics }/>
-            { result.document
-                ? <AsyncApi schema={ result.document } config={ options }/>
-                : (
-                    <AsyncApiContainerSpinnerWrapper>
-                        <div>Спецификацию не удалось разобрать — список проблем выше.</div>
-                    </AsyncApiContainerSpinnerWrapper>
-                ) }
+            <AsyncApi schema={ result.document } config={ options }/>
         </AsyncApiContainerWrapper>
     )
 };

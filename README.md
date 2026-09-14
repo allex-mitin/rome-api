@@ -9,9 +9,10 @@
 ## Стек
 
 - React 18 + TypeScript
-- Vite 5
+- Vite 7
 - `react-router-dom` (loaders, `createBrowserRouter`)
-- `@admiral-ds/react-ui` + `styled-components` + Tailwind
+- `styled-components` + Tailwind CSS 4 — стили и контролы свои, внешних UI-китов нет
+- системный стек шрифтов: своих шрифтов в поставке нет (лицензионно чисто)
 - `swagger-ui-react` — рендер OpenAPI
 - `@asyncapi/react-component` + `@asyncapi/parser` — рендер AsyncAPI
 

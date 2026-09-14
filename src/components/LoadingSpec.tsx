@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import styled from 'styled-components';
-import { Spinner } from '@admiral-ds/react-ui';
+import { Spinner } from './Spinner';
 
 interface LoadingSpecProps {
     /** Set when there is nothing to load: the service has no spec address configured. */
@@ -55,7 +55,7 @@ export const LoadingSpec: FC<LoadingSpecProps> = ({ withError = false }) => {
 
     return (
         <Wrapper>
-            <Spinner dimension="xl"/>
+            <Spinner size="xl"/>
             <Message>Загружаю спецификацию…</Message>
         </Wrapper>
     )

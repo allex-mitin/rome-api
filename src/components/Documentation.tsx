@@ -1,7 +1,7 @@
 import { FC, lazy, Suspense } from "react";
 import { useLoaderData, useParams } from "react-router-dom";
 import styled from "styled-components";
-import { Spinner } from "@admiral-ds/react-ui";
+import { Spinner } from "./Spinner";
 import { getSpecification } from "../helpers";
 import { asyncApiOptions, openApiOptions } from "../helpers/rendererOptions";
 import { DocumentationType } from "../models/DocumentationType";
@@ -60,7 +60,7 @@ export const Documentation: FC = () => {
     })()
     return (
         <DocumentationWrapper>
-            <Suspense fallback={ <FallbackWrapper><Spinner dimension="xl"/></FallbackWrapper> }>
+            <Suspense fallback={ <FallbackWrapper><Spinner size="xl"/></FallbackWrapper> }>
                 { document }
             </Suspense>
         </DocumentationWrapper>

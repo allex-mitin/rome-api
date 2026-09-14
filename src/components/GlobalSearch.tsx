@@ -1,7 +1,7 @@
 import { FC, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { SystemSearchOutline } from "@admiral-ds/icons";
+import { SearchIcon } from "./icons";
 import { Services } from "../helpers";
 import { buildSearchIndex } from "../helpers/specIndex";
 import type { SearchEntry } from "../helpers/specIndex";
@@ -26,7 +26,8 @@ const Wrapper = styled.div`
     min-width: 160px;
 `
 
-const SearchIcon = styled(SystemSearchOutline)`
+// Named differently from the imported glyph so the two do not collide in this file.
+const SearchGlyph = styled(SearchIcon)`
     position: absolute;
     top: 50%;
     left: 12px;
@@ -189,7 +190,7 @@ export const GlobalSearch: FC<GlobalSearchProps> = ({ className }) => {
 
     return (
         <Wrapper className={ className }>
-            <SearchIcon/>
+            <SearchGlyph/>
             <SearchInput
                 type="search"
                 value={ query }

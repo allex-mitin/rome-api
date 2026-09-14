@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { useLocation } from 'react-router-dom';
 import SwaggerUI from 'swagger-ui-react';
 import { LoadingSpec } from '../components/LoadingSpec';
+import { SpecFailure } from '../components/SpecFailure';
 import { ValidationPanel } from '../components/ValidationPanel';
 import { loadSpecDiagnostics } from '../helpers/specValidation';
 import type { Diagnostic } from '../helpers/specValidation';
@@ -47,6 +48,13 @@ export const SwaggerPage: FC<{
 
     if (!url) {
         return <LoadingSpec withError={true}/>
+    }
+
+    // A document that cannot be shown at all gets our own state: swagger-ui would otherwise render its
+    // raw English "Unable to render this definition" screen. Not mounting it also avoids fetching a
+    // document that is already known to be broken.
+    if (diagnostics.some((item) => item.fatal)) {
+        return <SpecFailure url={ url } diagnostics={ diagnostics }/>
     }
 
     // Options read from the settings file are spread first: `url` and `key` belong to the app, so

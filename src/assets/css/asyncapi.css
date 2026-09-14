@@ -30,9 +30,12 @@
  * 1. Shell contract and root
  * =========================================================================================== */
 
-/* The content column has no padding of its own — the horizontal inset lives here. */
+/* The content column has no padding of its own — the insets live here. The top one is what keeps
+   the first block (the validation panel, or the title when there are no diagnostics) away from the
+   toolbar: the renderer itself gives the title only 4px. 24px matches the OpenAPI side, where the
+   same inset sits on `.information-container`. */
 .aui-root {
-  padding: 0 var(--app-gutter) 72px;
+  padding: 24px var(--app-gutter) 72px;
   color: var(--app-text, #101828);
   font-size: 14px;
   line-height: 1.55;
@@ -64,9 +67,10 @@
   margin-right: 0;
 }
 
-/* Top/bottom rhythm: the renderer used to breathe 32/64/48px between blocks. */
+/* Top/bottom rhythm: the renderer used to breathe 32/64/48px between blocks. The top inset moved
+   to `.aui-root`, so the panel does not add one of its own. */
 .aui-root .panel--center {
-  padding-top: 4px;
+  padding-top: 0;
   padding-bottom: 0;
 }
 
