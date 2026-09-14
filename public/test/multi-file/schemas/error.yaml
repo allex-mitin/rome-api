@@ -1,0 +1,15 @@
+Error:
+  type: object
+  title: Ошибка
+  description: Единый формат ошибки API.
+  required:
+    - code
+    - message
+  properties:
+    code:
+      type: integer
+      format: int32
+      example: 400
+    message:
+      type: string
+      example: Некорректные данные

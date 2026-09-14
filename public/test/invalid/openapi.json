@@ -1,0 +1,45 @@
+{
+  "_comment": "Намеренно битая спецификация для проверки панели валидации. Здесь нет info.version, есть висячие внутренние ссылки и ссылка на несуществующий файл.",
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Намеренно битая спецификация",
+    "description": "Демо-фикстура для панели валидации: не хватает info.version, есть висячие ссылки."
+  },
+  "paths": {
+    "/ping": {
+      "get": {
+        "summary": "Ping",
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundMissing"
+          }
+        }
+      }
+    },
+    "/external": {
+      "get": {
+        "summary": "Ссылка на несуществующий файл",
+        "responses": {
+          "200": {
+            "$ref": "./missing-file.yml#/components/responses/Ok"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Ping": {
+        "type": "object",
+        "properties": {
+          "broken": {
+            "$ref": "#/components/schemas/DoesNotExist"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+# Описания сообщений. Полезная нагрузка вынесена в общий модуль DTO
+# `../model/ping.yaml`, поэтому сообщения ссылаются на него через `$ref` —
+# это второй уровень цепочки, начало которой в корневом multi-file/asyncapi.yaml.
+components:
+  messages:
+    ping:
+      name: ping
+      title: Ping
+      summary: Запрос ping.
+      contentType: application/json
+      payload:
+        $ref: '../model/ping.yaml#/components/schemas/Ping'
+    pong:
+      name: pong
+      title: Pong
+      summary: Ответ pong.
+      contentType: application/json
+      payload:
+        $ref: '../model/ping.yaml#/components/schemas/Pong'

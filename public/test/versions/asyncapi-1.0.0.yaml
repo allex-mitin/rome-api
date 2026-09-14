@@ -1,0 +1,22 @@
+# Версия 1.0.0. Сообщение берётся из общего модуля `multi-file/messages/messages.yaml`
+# (а тот — из `multi-file/model/ping.yaml`), поэтому в самой версии описаны только каналы.
+asyncapi: 3.0.0
+info:
+  title: Ping/pong
+  version: 1.0.0
+  description: В этой версии есть только канал запросов ping.
+channels:
+  ping:
+    address: /ping
+    description: Канал запросов ping.
+    messages:
+      ping:
+        $ref: '../multi-file/messages/messages.yaml#/components/messages/ping'
+operations:
+  pingRequest:
+    action: send
+    summary: Отправить запрос ping.
+    channel:
+      $ref: '#/channels/ping'
+    messages:
+      - $ref: '#/channels/ping/messages/ping'

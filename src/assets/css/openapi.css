@@ -1,0 +1,1052 @@
+/*
+ * Adjustments for the OpenAPI renderer (`swagger-ui`).
+ *
+ * Loaded after `swagger-ui.css` (see `src/index.tsx`), so plain selectors of equal specificity win.
+ * Everything the renderer draws should be restyled from here — the app's own shell lives in
+ * `main.css` and must not know about `.swagger-ui` internals.
+ *
+ * The renderer is given a full-width surface with its own padding: the content card around it has
+ * none, so the horizontal insets are set here.
+ *
+ * The renderer follows the shell's language: one calm type scale, 10–16px radii, 24px side insets,
+ * zones separated by whitespace/background/elevation instead of full-width rules.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Shell contract — full width, `--app-gutter` side insets, no clamped container.
+ * ------------------------------------------------------------------------- */
+
+.swagger-ui {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+}
+
+/* One inset for the whole content column, shared with the sticky toolbar (`--app-gutter`). */
+.swagger-ui .wrapper {
+  max-width: none;
+  width: 100%;
+  padding: 0 var(--app-gutter) 72px;
+}
+
+.swagger-ui .container {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.swagger-ui .swagger-container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * 1. Title block — the huge headline and the 50px margins are gone.
+ * ------------------------------------------------------------------------- */
+
+/* `.information-container` also carries `.wrapper`, which would leave 48px of dead space under
+   the title: the top inset is set here and the rhythm comes from the blocks below. */
+.swagger-ui .information-container.wrapper {
+  padding: 24px var(--app-gutter) 0;
+}
+
+.swagger-ui .info {
+  margin: 0;
+}
+
+.swagger-ui .info hgroup.main {
+  margin: 0 0 8px;
+}
+
+.swagger-ui .info .title {
+  margin: 0;
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-size: 26px;
+  line-height: 34px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.swagger-ui .info > div {
+  margin: 0 0 8px;
+}
+
+.swagger-ui .info li,
+.swagger-ui .info p,
+.swagger-ui .info pre,
+.swagger-ui .info table {
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.swagger-ui .info a {
+  color: var(--app-accent);
+  font-family: var(--app-font-family);
+  font-size: 13px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(16, 24, 40, 0.25);
+  text-decoration-color: color-mix(in srgb, var(--app-accent) 45%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.swagger-ui .info a:hover {
+  color: var(--app-accent);
+  text-decoration-color: currentColor;
+}
+
+.swagger-ui .info .link {
+  color: var(--app-accent);
+  font-size: 13px;
+}
+
+/* Terms / contact / license used to be three block rows with 8px apiece, and the external
+   docs link another one: they form a single quiet row of inline links now. */
+.swagger-ui .info .info__tos,
+.swagger-ui .info .info__contact,
+.swagger-ui .info .info__license {
+  display: inline-block;
+  margin: 0;
+  color: var(--app-text);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.swagger-ui .info .info__contact,
+.swagger-ui .info .info__license,
+.swagger-ui .info > .info__extdocs {
+  margin-left: 18px;
+}
+
+.swagger-ui .info > .info__extdocs.link {
+  display: inline-block;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* `[ Base URL: … ]` — a quiet code chip instead of a bold monospace line. The brackets are part
+   of the markup, so they stay, but they are muted along with the rest of the chip. */
+.swagger-ui .info .base-url {
+  display: inline-block;
+  margin: 8px 0 0;
+  padding: 3px 10px;
+  background: var(--app-hover);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--app-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 16px;
+  /* swagger-ui declares the weight with `!important`, so the override has to match it. */
+  font-weight: 500 !important;
+}
+
+.swagger-ui .markdown code,
+.swagger-ui .renderedMarkdown code {
+  padding: 1px 6px;
+  background: var(--app-hover);
+  border-radius: 6px;
+  color: var(--app-text);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+/* ---------------------------------------------------------------------------
+ * 2. Version / spec chips — small neutral chips instead of coloured pills.
+ * ------------------------------------------------------------------------- */
+
+.swagger-ui .info .title small {
+  display: inline-block;
+  position: static;
+  top: auto;
+  vertical-align: middle;
+  margin: 0 0 0 8px;
+  padding: 2px 8px;
+  background: var(--app-hover);
+  border: 1px solid rgba(16, 24, 40, 0.08);
+  border-radius: 8px;
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+/* The `OAS x.y` badge keeps a hint of the brand accent instead of the acid green. */
+.swagger-ui .info .title small.version-stamp {
+  background: var(--app-hover);
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-surface));
+  border-color: rgba(16, 24, 40, 0.08);
+  border-color: color-mix(in srgb, var(--app-accent) 28%, transparent);
+  color: var(--app-accent);
+}
+
+.swagger-ui .info .title small pre {
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+}
+
+/* ---------------------------------------------------------------------------
+ * 3. Servers / authorize zone — a soft inset panel, not a full-bleed slab.
+ * ------------------------------------------------------------------------- */
+
+/* A compact strip that hugs its content instead of a mostly empty full-width slab. */
+.swagger-ui .scheme-container {
+  width: fit-content;
+  max-width: 100%;
+  margin: 20px var(--app-gutter);
+  padding: 12px 16px;
+  background: var(--app-toolbar);
+  border: 1px solid rgba(16, 24, 40, 0.06);
+  border-radius: var(--app-radius);
+  box-shadow: none;
+}
+
+/* The inner `<div class="schemes wrapper …">` also matches the `.wrapper` rule above. */
+.swagger-ui .scheme-container .schemes.wrapper {
+  padding: 0;
+}
+
+.swagger-ui .scheme-container .schemes {
+  /* `col-12` from swagger-ui's grid would stretch the strip back to full width. */
+  width: auto;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 20px;
+}
+
+.swagger-ui .scheme-container .schemes > .schemes-server-container {
+  gap: 12px;
+}
+
+/* swagger-ui pulls these labels up with a negative margin (`-20px`) to meet the old, taller bar. */
+.swagger-ui .scheme-container .schemes > .schemes-server-container > label,
+.swagger-ui .servers > label {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+}
+
+.swagger-ui .scheme-container .schemes > .schemes-server-container > label select {
+  min-width: 180px;
+  text-transform: none;
+}
+
+.swagger-ui .servers-title,
+.swagger-ui .schemes-title {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.swagger-ui .auth-wrapper {
+  flex: none;
+}
+
+.swagger-ui .auth-wrapper .authorize,
+.swagger-ui .scheme-container .schemes .auth-wrapper .authorize {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding-right: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * 4. Sections (`opblock-tag`) — the full-width underline becomes spacing.
+ * ------------------------------------------------------------------------- */
+
+.swagger-ui .opblock-tag-section {
+  margin-top: 24px;
+}
+
+.swagger-ui .opblock-tag {
+  margin: 0 -10px 10px;
+  padding: 8px 10px;
+  border-bottom: 0;
+  border-radius: 10px;
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-size: 19px;
+  line-height: 26px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.swagger-ui .opblock-tag:hover {
+  background: var(--app-hover);
+}
+
+.swagger-ui .opblock-tag small {
+  padding: 0 12px;
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+/* The tag description is markdown: its default 1em paragraph margins inflate the row. */
+.swagger-ui .opblock-tag .markdown p,
+.swagger-ui .opblock-tag .renderedMarkdown p {
+  margin: 0;
+}
+
+.swagger-ui .opblock-tag > div {
+  min-width: 0;
+  font-weight: 400;
+}
+
+/* The tag row is a flex line: title, description, external link, chevron. The description must
+   not grow, or the external docs link is pushed into the far right corner. */
+.swagger-ui .opblock-tag > small {
+  flex: 0 1 auto;
+}
+
+.swagger-ui .opblock-tag .info__externaldocs {
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0 0 0 12px;
+  padding: 0;
+  overflow: visible;
+  text-align: left;
+  white-space: nowrap;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.swagger-ui .opblock-tag .info__externaldocs small {
+  display: inline;
+  padding: 0;
+  font-size: inherit;
+}
+
+.swagger-ui .opblock-tag .link,
+.swagger-ui .opblock-tag .info__externaldocs a {
+  color: var(--app-text-muted);
+  font-size: 12.5px;
+  line-height: 18px;
+  text-decoration: none;
+}
+
+.swagger-ui .opblock-tag .link:hover,
+.swagger-ui .opblock-tag .link:focus,
+.swagger-ui .opblock-tag .info__externaldocs a:hover,
+.swagger-ui .opblock-tag .info__externaldocs a:focus {
+  color: var(--app-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* The chevron used to read as a white box in the corner: it is a muted icon button now. */
+.swagger-ui .opblock-tag .expand-operation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin: 0 0 0 auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: none;
+  color: var(--app-text-muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.swagger-ui .opblock-tag .expand-operation:hover,
+.swagger-ui .opblock-tag .expand-operation:focus {
+  background: var(--app-hover);
+  color: var(--app-text);
+  outline: none;
+}
+
+.swagger-ui .opblock-tag .expand-operation:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent) 22%, transparent);
+}
+
+.swagger-ui .opblock-tag .expand-operation svg {
+  width: 16px;
+  height: 16px;
+  color: inherit;
+  fill: currentColor;
+}
+
+/* ---------------------------------------------------------------------------
+ * 5. Operations — flatter cards, softer summary row.
+ * ------------------------------------------------------------------------- */
+
+/* One calm card per operation: the method keeps its colour in the summary badge only, while the
+   row is washed with the same hue at ~6% instead of the saturated 10% + method-coloured frame. */
+.swagger-ui .opblock {
+  margin: 0 0 10px;
+  background: var(--app-surface);
+  border: 1px solid rgba(16, 24, 40, 0.07);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.swagger-ui .opblock.opblock-get {
+  border-color: rgba(16, 24, 40, 0.07);
+  background: color-mix(in srgb, #61affe 6%, var(--app-surface));
+}
+
+.swagger-ui .opblock.opblock-post {
+  border-color: rgba(16, 24, 40, 0.07);
+  background: color-mix(in srgb, #49cc90 6%, var(--app-surface));
+}
+
+.swagger-ui .opblock.opblock-put {
+  border-color: rgba(16, 24, 40, 0.07);
+  background: color-mix(in srgb, #fca130 7%, var(--app-surface));
+}
+
+.swagger-ui .opblock.opblock-delete {
+  border-color: rgba(16, 24, 40, 0.07);
+  background: color-mix(in srgb, #f93e3e 6%, var(--app-surface));
+}
+
+.swagger-ui .opblock.opblock-patch {
+  border-color: rgba(16, 24, 40, 0.07);
+  background: color-mix(in srgb, #50e3c2 8%, var(--app-surface));
+}
+
+.swagger-ui .opblock.opblock-head {
+  border-color: rgba(16, 24, 40, 0.07);
+  background: color-mix(in srgb, #9012fe 5%, var(--app-surface));
+}
+
+.swagger-ui .opblock.opblock-options {
+  border-color: rgba(16, 24, 40, 0.07);
+  background: color-mix(in srgb, #0d5aa7 5%, var(--app-surface));
+}
+
+.swagger-ui .opblock.opblock-deprecated {
+  border-color: rgba(16, 24, 40, 0.07);
+  background: var(--app-surface);
+}
+
+/* The open state used to be marked with a 1px rule across the whole card. */
+.swagger-ui .opblock.is-open .opblock-summary {
+  border-bottom: 0;
+}
+
+.swagger-ui .opblock .opblock-summary {
+  padding: 6px;
+  border-radius: 12px;
+}
+
+.swagger-ui .opblock .opblock-summary-method {
+  min-width: 68px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-family: var(--app-font-family);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-shadow: none;
+}
+
+.swagger-ui .opblock .opblock-summary-path,
+.swagger-ui .opblock .opblock-summary-operation-id {
+  color: var(--app-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.swagger-ui .opblock .opblock-summary-description {
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 12.5px;
+}
+
+.swagger-ui .opblock .opblock-summary-path-description-wrapper {
+  min-width: 0;
+  padding: 0 10px;
+}
+
+/* The summary carried swagger-ui's copy control: a saturated slate chip (`#7d8293`, 4px radius)
+   whose glyph was painted twice — swagger-ui's own background image plus the `CopyIcon` SVG that
+   this variant already has in the markup — so it read as a smudge next to the row's flat icons.
+   It is a ghost icon button now, built like the tag chevron: no fill, a muted icon, `--app-hover`
+   under the pointer. The box is still 0 wide until the row is hovered; `overflow: hidden` is what
+   keeps the icon of that state inside, because it is no longer white-on-white. */
+.swagger-ui .opblock .opblock-summary .view-line-link.copy-to-clipboard {
+  overflow: hidden;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--app-text-muted);
+  transition: width 0.15s ease, margin 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.swagger-ui .opblock .opblock-summary:hover .view-line-link.copy-to-clipboard {
+  width: 24px;
+  margin: 0 2px;
+}
+
+.swagger-ui .opblock .opblock-summary .view-line-link.copy-to-clipboard:hover {
+  background: var(--app-hover);
+  color: var(--app-text);
+}
+
+/* Here the icon is the SVG in the markup, not swagger-ui's background image: painted together they
+   stack into a blur, and that white `fill` is meant for the dark code blocks, not for this row. */
+.swagger-ui .opblock .opblock-summary .view-line-link.copy-to-clipboard button {
+  width: 100%;
+  height: 100%;
+  background: none;
+  border: 0;
+  color: inherit;
+}
+
+.swagger-ui .view-line-link.copy-to-clipboard svg path {
+  fill: currentColor;
+}
+
+/* swagger-ui keeps the browser's own ring on the summary control (`outline: auto`), which draws as
+   a heavy dark frame around the whole row. Keyboard focus gets the app's ring instead. */
+.swagger-ui .opblock-summary-control:focus {
+  outline: none;
+}
+
+.swagger-ui .opblock-summary-control:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent) 22%, transparent);
+}
+
+/* The body sections carried their own drop shadow, i.e. another full-width line. Their insets are
+   the table cells' own 12px, so a heading lines up with its table and the `Try it out` /
+   response-type controls keep that distance from the card edge instead of touching it. */
+.swagger-ui .opblock .opblock-section-header {
+  min-height: 0;
+  padding: 10px 12px 6px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.swagger-ui .opblock .opblock-section-header h4 {
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.swagger-ui .opblock .opblock-section-header > label {
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 12px;
+}
+
+.swagger-ui .opblock-body .opblock-description-wrapper p,
+.swagger-ui .opblock-body .opblock-external-docs-wrapper p,
+.swagger-ui .opblock-body .opblock-title_normal p {
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 13px;
+}
+
+.swagger-ui .opblock-body pre.microlight {
+  padding: 12px 14px;
+  background: #16202e;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.swagger-ui .opblock .body-param-options label span {
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+}
+
+/* ---------------------------------------------------------------------------
+ * 6. Buttons and form controls — no 2px grey outlines, no drop shadows.
+ * ------------------------------------------------------------------------- */
+
+.swagger-ui .btn,
+.swagger-ui .btn-group .btn {
+  padding: 6px 16px;
+  background: var(--app-surface);
+  border: 1px solid rgba(16, 24, 40, 0.14);
+  border-radius: 10px;
+  box-shadow: none;
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.swagger-ui .btn:hover {
+  background: var(--app-hover);
+  border-color: rgba(16, 24, 40, 0.2);
+}
+
+.swagger-ui .btn.cancel {
+  border-color: transparent;
+  color: var(--app-text-muted);
+}
+
+.swagger-ui .btn.authorize,
+.swagger-ui .scheme-container .btn.authorize {
+  background-color: var(--app-surface);
+  border-color: var(--app-accent);
+  color: var(--app-accent);
+}
+
+.swagger-ui .btn.authorize svg {
+  color: inherit;
+}
+
+.swagger-ui .execute-wrapper {
+  padding: 12px 0 0;
+}
+
+.swagger-ui select {
+  padding: 7px 34px 7px 12px;
+  background-color: var(--app-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8.5 10 12.5 14 8.5' stroke='%23667085' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+  border: 1px solid rgba(16, 24, 40, 0.14);
+  border-radius: 10px;
+  box-shadow: none;
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-size: 13px;
+  font-weight: 500;
+  transition: border-color 0.15s ease;
+}
+
+.swagger-ui select:hover {
+  border-color: rgba(16, 24, 40, 0.26);
+}
+
+.swagger-ui select:focus {
+  border-color: var(--app-accent);
+  outline: none;
+}
+
+.swagger-ui input[type=email],
+.swagger-ui input[type=file],
+.swagger-ui input[type=password],
+.swagger-ui input[type=search],
+.swagger-ui input[type=text] {
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--app-surface);
+  border: 1px solid rgba(16, 24, 40, 0.14);
+  border-radius: 10px;
+  box-shadow: none;
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-size: 13px;
+  transition: border-color 0.15s ease;
+}
+
+.swagger-ui input[type=email]:focus,
+.swagger-ui input[type=file]:focus,
+.swagger-ui input[type=password]:focus,
+.swagger-ui input[type=search]:focus,
+.swagger-ui input[type=text]:focus {
+  border-color: var(--app-accent);
+  outline: none;
+}
+
+.swagger-ui textarea {
+  background: var(--app-surface);
+  border: 1px solid rgba(16, 24, 40, 0.14);
+  border-radius: 10px;
+}
+
+/* The native file control breaks the row: it is sized to the column and wears the app's own
+   button through `::file-selector-button` instead of the OS frame plus border. */
+.swagger-ui input[type=file],
+.swagger-ui .parameters-col_description input[type=file] {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 340px;
+  padding: 4px 0;
+  background: transparent;
+  border-color: transparent;
+  color: var(--app-text-muted);
+  font-size: 12.5px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.swagger-ui input[type=file]::file-selector-button {
+  margin: 0 10px 0 0;
+  padding: 6px 14px;
+  background: var(--app-surface);
+  border: 1px solid rgba(16, 24, 40, 0.14);
+  border-radius: 9px;
+  box-shadow: none;
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.swagger-ui input[type=file]::file-selector-button:hover {
+  background: var(--app-hover);
+  border-color: rgba(16, 24, 40, 0.2);
+}
+
+/* ---------------------------------------------------------------------------
+ * 7. Operation filter — the field that narrows the tag list down.
+ * ------------------------------------------------------------------------- */
+
+.swagger-ui .filter-container {
+  margin: 20px 0 0;
+}
+
+/* The filter section is a `.wrapper`: drop its trailing 48px, the rhythm is set above. */
+.swagger-ui .filter.wrapper {
+  padding: 0 var(--app-gutter);
+}
+
+.swagger-ui .filter .operation-filter-input {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 10px 14px 10px 40px;
+  background-color: var(--app-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Ccircle cx='9' cy='9' r='5.75' stroke='%23667085' stroke-width='1.6'/%3E%3Cpath d='M13.4 13.4 17 17' stroke='%23667085' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-position: 14px center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+  border: 1px solid rgba(16, 24, 40, 0.12);
+  border-radius: 10px;
+  box-shadow: none;
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.swagger-ui .filter .operation-filter-input::placeholder {
+  color: var(--app-text-muted);
+}
+
+.swagger-ui .filter .operation-filter-input:focus {
+  border-color: var(--app-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(70, 150, 229, 0.16);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent) 18%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+ * 8. Parameter / response tables — quiet headers, zebra instead of rules.
+ * ------------------------------------------------------------------------- */
+
+.swagger-ui table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--app-font-family);
+}
+
+/* `thead` cells carry a `border-bottom`; the responses table uses `td` where the parameters table
+   uses `th`, so both have to be covered. */
+.swagger-ui table thead tr td,
+.swagger-ui table thead tr th {
+  padding: 4px 12px 10px;
+  border: 0;
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+/* swagger-ui insets the parameters table by 20px: align it with the section header instead. */
+.swagger-ui .table-container {
+  padding: 4px 0 0;
+}
+
+.swagger-ui table tbody tr td {
+  padding: 12px;
+  border: 0;
+  vertical-align: top;
+}
+
+.swagger-ui .parameters tbody tr:nth-child(even) td,
+.swagger-ui .responses-inner table tbody tr:nth-child(even) td {
+  background: rgba(16, 24, 40, 0.025);
+}
+
+.swagger-ui .parameters tbody tr td:first-child,
+.swagger-ui .responses-inner table tbody tr td:first-child {
+  padding-left: 12px;
+  border-radius: 10px 0 0 10px;
+}
+
+.swagger-ui .parameters tbody tr td:last-child,
+.swagger-ui .responses-inner table tbody tr td:last-child {
+  padding-right: 12px;
+  border-radius: 0 10px 10px 0;
+}
+
+/* NAME sizes to its content (a name plus one metadata line), DESCRIPTION takes the rest. */
+.swagger-ui .parameters-col_name {
+  width: 1%;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.swagger-ui .parameters-col_description,
+.swagger-ui .response-col_description {
+  width: auto;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+/* With try-it-out off swagger-ui still renders the value controls, disabled: they read as
+   duplicate parameter fields, so they stay out of the way until the mode is on. */
+.swagger-ui .parameters-col_description input:disabled,
+.swagger-ui .parameters-col_description select:disabled,
+.swagger-ui .parameters-col_description textarea:disabled {
+  display: none;
+}
+
+.swagger-ui .parameter__name {
+  color: var(--app-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* `integer($int64)`, `(path)` and the (usually empty) deprecation block were three stacked
+   block boxes with dead space between them: one compact muted mono line now. */
+.swagger-ui .parameter__type,
+.swagger-ui .parameter__in,
+.swagger-ui .parameter__extension,
+.swagger-ui .parameter__deprecated {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  color: var(--app-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.swagger-ui .parameter__type {
+  padding-top: 4px;
+}
+
+.swagger-ui .parameter__in:before {
+  content: "·";
+  margin: 0 6px;
+  color: rgba(16, 24, 40, 0.3);
+  color: color-mix(in srgb, var(--app-text-muted) 55%, transparent);
+}
+
+/* Empty blocks only added height — the deprecation marker shows up when the spec sets it. */
+.swagger-ui .parameter__deprecated:empty,
+.swagger-ui .parameter__extension:empty,
+.swagger-ui .parameter__in:empty {
+  display: none;
+}
+
+/* swagger-ui prints `required` in a `:after` pseudo-element with a `top: -6px` nudge; the muted
+   star that already sits in the markup is the only marker left. */
+.swagger-ui .parameter__name.required:after {
+  content: none;
+}
+
+.swagger-ui .parameter__name.required span {
+  color: var(--app-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  vertical-align: 0.05em;
+}
+
+.swagger-ui .response-col_status {
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.swagger-ui .response-col_links {
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 13px;
+  padding-left: 0;
+}
+
+.swagger-ui .responses-inner {
+  padding: 4px 0 0;
+}
+
+.swagger-ui .responses-inner h4,
+.swagger-ui .responses-inner h5 {
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------------
+ * 9. Models / schema boxes.
+ * ------------------------------------------------------------------------- */
+
+.swagger-ui section.models {
+  margin: 28px 0 0;
+  background: var(--app-toolbar);
+  border: 0;
+  border-radius: var(--app-radius);
+}
+
+.swagger-ui section.models h4 {
+  padding: 14px 18px;
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.swagger-ui section.models h4:hover {
+  background: var(--app-hover);
+}
+
+.swagger-ui section.models.is-open {
+  padding: 0 0 6px;
+}
+
+.swagger-ui section.models.is-open h4 {
+  margin: 0;
+  border-bottom: 0;
+}
+
+.swagger-ui section.models h5 {
+  color: var(--app-text-muted);
+  font-family: var(--app-font-family);
+  font-size: 13px;
+}
+
+.swagger-ui section.models .model-container,
+.swagger-ui section.models .model-container:first-of-type,
+.swagger-ui section.models .model-container:last-of-type {
+  margin: 0 18px 12px;
+  background: var(--app-surface);
+  border-radius: 10px;
+}
+
+.swagger-ui .model-box {
+  padding: 10px 12px;
+  background: var(--app-hover);
+  border-radius: 10px;
+}
+
+.swagger-ui .model {
+  font-family: var(--app-font-family);
+  font-size: 13px;
+}
+
+.swagger-ui .model-title,
+.swagger-ui .model-title__text {
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-weight: 600;
+}
+
+.swagger-ui .prop-type {
+  color: var(--app-text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+ * 10. Authorize dialog.
+ * ------------------------------------------------------------------------- */
+
+.swagger-ui .dialog-ux .modal-ux {
+  border: 0;
+  border-radius: var(--app-radius);
+  box-shadow: 0 24px 60px -20px rgba(16, 24, 40, 0.35);
+}
+
+.swagger-ui .dialog-ux .modal-ux-header {
+  padding: 8px 0;
+  border-bottom: 0;
+}
+
+.swagger-ui .dialog-ux .modal-ux-header h3 {
+  padding: 0 20px;
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+  font-size: 18px;
+}
+
+.swagger-ui .dialog-ux .modal-ux-content {
+  padding: 8px 20px 20px;
+}
+
+.swagger-ui .dialog-ux .modal-ux-content h4,
+.swagger-ui .dialog-ux .modal-ux-content p {
+  color: var(--app-text);
+  font-family: var(--app-font-family);
+}
+
+.swagger-ui .auth-container {
+  border-bottom: 0;
+  padding: 12px 0;
+}
+
+.swagger-ui .auth-btn-wrapper {
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 8px 0 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * 11. Guard rails: nothing inside the renderer may scroll sideways.
+ * ------------------------------------------------------------------------- */
+
+.swagger-ui table {
+  width: 100%;
+}
+
+.swagger-ui .opblock-summary-path,
+.swagger-ui .opblock-tag > div,
+.swagger-ui .opblock-tag small {
+  overflow-wrap: anywhere;
+}

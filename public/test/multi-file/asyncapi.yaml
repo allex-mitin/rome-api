@@ -1,0 +1,39 @@
+# Корневой документ AsyncAPI. Сообщения вынесены в `messages/messages.yaml`,
+# а тот ссылается на общий модуль DTO `model/ping.yaml` — двухуровневая цепочка `$ref`.
+asyncapi: 3.0.0
+info:
+  title: Ping/pong — спецификация из нескольких файлов
+  version: 1.0.0
+  description: >-
+    Корневой документ ссылается на файл с сообщениями (`messages/messages.yaml`),
+    а тот — на общий модуль DTO (`model/ping.yaml`). Внешние ссылки разрешает
+    кастомный file-resolver, а кнопка «Скачать» собирает всё в один документ.
+defaultContentType: application/json
+channels:
+  ping:
+    address: /ping
+    description: Канал запросов ping.
+    messages:
+      ping:
+        $ref: './messages/messages.yaml#/components/messages/ping'
+  pong:
+    address: /pong
+    description: Канал ответов pong.
+    messages:
+      pong:
+        $ref: './messages/messages.yaml#/components/messages/pong'
+operations:
+  pingRequest:
+    action: send
+    summary: Отправить запрос ping.
+    channel:
+      $ref: '#/channels/ping'
+    messages:
+      - $ref: '#/channels/ping/messages/ping'
+  pongReply:
+    action: receive
+    summary: Получить ответ pong.
+    channel:
+      $ref: '#/channels/pong'
+    messages:
+      - $ref: '#/channels/pong/messages/pong'

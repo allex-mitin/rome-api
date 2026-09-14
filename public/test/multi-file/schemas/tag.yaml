@@ -1,0 +1,16 @@
+# Второй уровень ссылок: этот файл подключается из schemas/pet.yaml.
+Tag:
+  type: object
+  title: Метка
+  description: Произвольная метка питомца.
+  required:
+    - name
+  properties:
+    id:
+      type: integer
+      format: int64
+      readOnly: true
+      example: 7
+    name:
+      type: string
+      example: пушистый

@@ -1,3 +1,5 @@
+# AsyncAPI-спецификация одним файлом: каналы, сообщения и схемы описаны здесь,
+# внешних `$ref` нет. Взята из документации AsyncAPI (Streetlights Kafka API).
 asyncapi: 3.0.0
 info:
   title: Streetlights Kafka API
@@ -15,21 +17,6 @@ info:
     url: 'https://www.apache.org/licenses/LICENSE-2.0'
 defaultContentType: application/json
 servers:
-  scram-connections:
-#    host: 'test.mykafkacluster.org:18092'
-#    protocol: kafka-secure
-#    description: Test broker secured with scramSha256
-#    security:
-#      - $ref: '#/components/securitySchemes/saslScram'
-#    tags:
-#      - name: 'env:test-scram'
-#        description: >-
-#          This environment is meant for running internal tests through
-#          scramSha256
-#      - name: 'kind:remote'
-#        description: This server is a remote server. Not exposed by the application
-#      - name: 'visibility:private'
-#        description: This resource is private and only available to certain users
   mtls-connections:
     host: 'test.mykafkacluster.org:28092'
     protocol: kafka-secure

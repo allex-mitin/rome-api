@@ -1,0 +1,15 @@
+# Намеренно битая AsyncAPI-спецификация для проверки панели валидации.
+# Проблемы: нет info.version, ссылка на несуществующий файл, у операции отсутствует channel.
+asyncapi: 3.0.0
+info:
+  title: Намеренно битая AsyncAPI-спецификация
+  description: Демо-фикстура для панели валидации — проблемы здесь заведомо есть.
+channels:
+  ping:
+    address: /ping
+    messages:
+      ping:
+        $ref: './missing-messages.yml#/components/messages/Ping'
+operations:
+  pingRequest:
+    action: send

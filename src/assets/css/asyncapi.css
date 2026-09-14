@@ -1,0 +1,459 @@
+/*
+ * Adjustments for the AsyncAPI renderer (`@asyncapi/react-component`).
+ *
+ * Loaded after `styles/default.min.css` (see `src/index.tsx`).
+ *
+ * Note: that stylesheet ships prebuilt **Tailwind utilities** (`.border-b`, `.bg-white`, `.text-2xl`,
+ * …) applied to a root element with the `.aui-root` class, and they are unlayered, so they beat our
+ * own Tailwind layer. Overrides therefore have to raise specificity — write `.aui-root .border-b`,
+ * not `.border-b`.
+ *
+ * The renderer is given a full-width surface with its own padding: the content column around it has
+ * none, so the horizontal insets are set here. `--app-gutter` is the same inset the toolbar uses,
+ * which keeps their left edges aligned.
+ *
+ * Goals of this sheet: a calm type scale (title ≤ 26px / 34px), badges as neat chips, **no full-width
+ * horizontal rules** inside the content (separation is done with background + spacing instead), one
+ * single horizontal inset, and no horizontal overflow on long content.
+ *
+ * Markup notes (verified against the rendered DOM of the demo specs):
+ *   .aui-root > .container:xl.bg-white > .panel--center.py-8 > .panel-item > .panel-item--center.px-8
+ *   title      -> div.text-4xl (title + version inside one text node)
+ *   sections   -> section.mt-16 > h2.text-3xl.font-light.mb-4.px-8
+ *   operation  -> li.mb-12 > h3 (span.font-mono.bg-blue-600|bg-green-600 + span.font-mono.text-base)
+ *   id rows    -> div.border.bg-gray-100.rounded.px-4.py-2.mt-2 (Operation ID / Message ID)
+ *   cards      -> div.shadow.rounded.bg-gray-200.p-4.border
+ *   examples   -> div.bg-gray-800.px-8.py-4.mt-4.-mx-8.examples (dark panel, full-bleed trick)
+ */
+
+/* ===========================================================================================
+ * 1. Shell contract and root
+ * =========================================================================================== */
+
+/* The content column has no padding of its own — the insets live here. The top one is what keeps
+   the first block (the validation panel, or the title when there are no diagnostics) away from the
+   toolbar: the renderer itself gives the title only 4px. 24px matches the OpenAPI side, where the
+   same inset sits on `.information-container`. */
+.aui-root {
+  padding: 24px var(--app-gutter) 72px;
+  color: var(--app-text, #101828);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+.aui-root .container\:xl {
+  max-width: 100%;
+}
+
+/* The renderer paints its own white background — the shell card already provides one. */
+.aui-root .container\:xl.bg-white {
+  background-color: transparent;
+}
+
+/* ===========================================================================================
+ * 2. Single horizontal inset, rhythm, overflow guards
+ * =========================================================================================== */
+
+/* Everything below used to sit at 32px (`px-8`) inside our 24px, or was pulled out again with a
+ * negative margin (`-mx-8`); neutralising both leaves one consistent 24px edge. */
+.aui-root .px-8 {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.aui-root .-mx-8 {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Top/bottom rhythm: the renderer used to breathe 32/64/48px between blocks. The top inset moved
+   to `.aui-root`, so the panel does not add one of its own. */
+.aui-root .panel--center {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.aui-root .mt-16 {
+  margin-top: 28px;
+}
+
+.aui-root .mb-12 {
+  margin-bottom: 22px;
+}
+
+.aui-root .mb-4 {
+  margin-bottom: 10px;
+}
+
+.aui-root .mt-4 {
+  margin-top: 14px;
+}
+
+.aui-root .pb-16 {
+  padding-bottom: 0;
+}
+
+/* Flex children must be allowed to shrink, otherwise long names blow the layout up. */
+.aui-root .panel--center,
+.aui-root .panel-item,
+.aui-root .panel-item--center,
+.aui-root .panel-item--right,
+.aui-root .w-full {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.aui-root .font-mono,
+.aui-root .break-anywhere,
+.aui-root .break-words,
+.aui-root .whitespace-pre-wrap {
+  overflow-wrap: anywhere;
+}
+
+/* ===========================================================================================
+ * 3. Borders — every full-width line in the content comes from these Tailwind utilities
+ * =========================================================================================== */
+
+.aui-root .border,
+.aui-root .border-b,
+.aui-root .border-l-8 {
+  border-width: 0;
+  border-style: none;
+}
+
+/* Block separation is now carried by background + radius, not by a rule. */
+.aui-root hr {
+  border: 0;
+  height: 0;
+  margin: 12px 0;
+}
+
+.aui-root .prose thead,
+.aui-root .prose tbody tr,
+.aui-root .prose th,
+.aui-root .prose td {
+  border-width: 0;
+}
+
+/* ===========================================================================================
+ * 4. Typography
+ * =========================================================================================== */
+
+/* Spec title (the version is part of the same text node — it cannot be styled separately). */
+.aui-root .text-4xl {
+  font-size: 26px;
+  line-height: 34px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--app-text, #101828);
+  overflow-wrap: anywhere;
+}
+
+/* Section headings: Servers / Operations / Messages / Schemas. */
+.aui-root .text-3xl {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.aui-root h2.text-3xl {
+  margin: 0 0 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--app-text, #101828);
+}
+
+/* Operation heading: chip + channel address. */
+.aui-root h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--app-text, #101828);
+}
+
+.aui-root .text-base {
+  font-size: 14px;
+}
+
+/* Small labels ("Security:", "Accepts the following message:"). */
+.aui-root h5 {
+  font-weight: 600;
+  color: var(--app-text, #101828);
+}
+
+/* Captions like "This example has been generated automatically." — the package makes them bold
+ * italic; `text-xs`/`font-bold`/`italic` are utilities, so the override has to keep up with them. */
+.aui-root h6.text-xs.font-bold.italic {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  font-style: normal;
+  color: var(--app-text-muted, #667085);
+}
+
+.aui-root p.px-8 {
+  padding: 0;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-text-muted, #667085);
+}
+
+/* Text colors of the package are the old Tailwind grays. */
+.aui-root .text-gray-500,
+.aui-root .text-gray-600 {
+  color: var(--app-text-muted, #667085);
+}
+
+.aui-root .text-gray-700,
+.aui-root .text-gray-800,
+.aui-root .text-gray-900 {
+  color: var(--app-text, #101828);
+}
+
+/* Markdown descriptions (`.prose`): the package scales headings up from 2.25em/1.5em. */
+.aui-root .prose {
+  max-width: none;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--app-text-muted, #667085);
+}
+
+.aui-root .prose h1,
+.aui-root .prose h2,
+.aui-root .prose h3,
+.aui-root .prose h4 {
+  margin: 12px 0 4px;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--app-text, #101828);
+}
+
+.aui-root .prose p {
+  margin: 8px 0;
+}
+
+.aui-root .prose p:first-child {
+  margin-top: 0;
+}
+
+.aui-root .prose p:last-child {
+  margin-bottom: 0;
+}
+
+.aui-root .prose ul,
+.aui-root .prose ol {
+  margin: 8px 0;
+}
+
+.aui-root .prose li {
+  margin: 3px 0;
+}
+
+.aui-root .prose code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background-color: rgba(16, 24, 40, 0.06);
+  color: var(--app-text, #101828);
+  font-size: 0.92em;
+  font-weight: 500;
+}
+
+/* The package wraps inline code in backticks — drop them. */
+.aui-root .prose code::before,
+.aui-root .prose code::after {
+  content: none;
+}
+
+.aui-root .prose pre {
+  margin: 10px 0;
+  border-radius: 10px;
+}
+
+.aui-root .prose pre code {
+  padding: 0;
+  background-color: transparent;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* ===========================================================================================
+ * 5. Chips
+ * =========================================================================================== */
+
+/* Media-type badges (`application/json`, blue variants): outline pills -> flat chips. */
+.aui-root a.text-orange-500,
+.aui-root a.text-blue-500,
+.aui-root div.text-orange-500,
+.aui-root div.text-blue-500 {
+  display: inline-block;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 999px;
+  background-color: var(--app-hover, rgba(16, 24, 40, 0.05));
+  color: var(--app-text-muted, #667085);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.aui-root a.text-orange-500:hover,
+.aui-root a.text-blue-500:hover {
+  background-color: rgba(16, 24, 40, 0.09);
+  color: var(--app-text, #101828);
+}
+
+/* Operation action chips (`SEND` / `RECEIVE`). */
+.aui-root span.bg-blue-600,
+.aui-root span.bg-green-600 {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.aui-root span.bg-blue-600 {
+  background-color: #eaf1ff;
+  color: #1d4ed8;
+}
+
+.aui-root span.bg-green-600 {
+  background-color: #e9f7f1;
+  color: #0f766e;
+}
+
+/* `Operation ID` / `Message ID` values. */
+.aui-root span.bg-orange-600 {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background-color: rgba(16, 24, 40, 0.06);
+  color: var(--app-text, #101828);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ===========================================================================================
+ * 6. Blocks
+ * =========================================================================================== */
+
+/* Cards: the package uses a gray fill plus a border and a shadow. */
+.aui-root .shadow,
+.aui-root .shadow-md {
+  box-shadow: none;
+}
+
+.aui-root .bg-gray-200 {
+  border-radius: 12px;
+  background-color: var(--app-hover, rgba(16, 24, 40, 0.05));
+}
+
+.aui-root .bg-gray-100 {
+  border-radius: 10px;
+  background-color: rgba(16, 24, 40, 0.03);
+}
+
+/* Operation ID / Message ID rows: drop the outline, keep a soft tinted row. */
+.aui-root div.border.bg-gray-100 {
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+/* Message payload / headers blocks: tinted card with a tinted header band. */
+.aui-root div.border.rounded.overflow-visible {
+  border: 0;
+  border-radius: 12px;
+  background-color: var(--app-toolbar, #fbfcfe);
+}
+
+.aui-root div.flex.justify-center.bg-gray-100 {
+  border-radius: 12px 12px 0 0;
+  padding: 12px 14px;
+  background-color: rgba(16, 24, 40, 0.04);
+}
+
+/* Examples panel (dark): used to be pulled outside the container with `-mx-8`. */
+.aui-root div.examples {
+  margin: 12px 0 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background-color: #101828;
+}
+
+.aui-root div.examples h4 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* Code blocks: the visible box is the `pre` (rounded by the `.prose pre` rule above); the `code.hljs`
+ * inside it is transparent and unpadded, and inside the examples panel it must not paint a second
+ * background of its own. */
+.aui-root .hljs {
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+
+.aui-root div.examples .hljs {
+  background-color: transparent;
+}
+
+/* Captions inside the dark panel need a light tone, not the muted gray. */
+.aui-root div.examples h6.text-xs.font-bold.italic {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Chips living on the dark panel. */
+.aui-root div.examples strong.bg-teal-500,
+.aui-root div.examples strong.bg-blue-500,
+.aui-root div.examples strong.bg-indigo-400 {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.12);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* Payload / headers toggles on the dark panel (they relied on a border for their outline). */
+.aui-root div.examples span.inline-block {
+  padding: 4px 6px;
+  border-radius: 7px;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ===========================================================================================
+ * 7. Interactions
+ * =========================================================================================== */
+
+.aui-root button.text-gray-500 {
+  color: var(--app-text-muted, #667085);
+  font-weight: 500;
+}
+
+.aui-root button.text-gray-500:hover,
+.aui-root .hover\:text-gray-900:hover {
+  color: var(--app-text, #101828);
+}
+
+.aui-root .focus\:ring-2:focus,
+.aui-root .focus\:ring-offset-2:focus {
+  box-shadow: none;
+}

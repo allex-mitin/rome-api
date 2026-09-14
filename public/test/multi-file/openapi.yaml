@@ -1,0 +1,114 @@
+# Корневой документ OpenAPI. Операции описаны здесь, а схемы вынесены в отдельные файлы
+# (schemas/*.yaml): так общие DTO переиспользуются другими спецификациями и версиями.
+# Ссылки `./schemas/...` разрешает и рендерер, и кнопка «Скачать» (сборка в один документ).
+openapi: 3.0.3
+info:
+  title: Pets API — спецификация из нескольких файлов
+  version: 1.0.0
+  description: >-
+    Схемы вынесены в `schemas/`, а `components.schemas` корневого документа ссылается
+    на них через `$ref`. Внутри `schemas/pet.yaml` есть ещё один уровень ссылок —
+    на `schemas/tag.yaml`.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: https://api.example.com/v1
+    description: Продовый контур
+tags:
+  - name: pets
+    description: Операции над питомцами
+paths:
+  /pets:
+    get:
+      tags:
+        - pets
+      summary: Список питомцев
+      operationId: listPets
+      parameters:
+        - name: limit
+          in: query
+          description: Сколько питомцев вернуть
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Список питомцев
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/pet.yaml#/Pet'
+        default:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/error.yaml#/Error'
+    post:
+      tags:
+        - pets
+      summary: Добавить питомца
+      operationId: createPet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/pet.yaml#/NewPet'
+      responses:
+        '201':
+          description: Питомец создан
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/pet.yaml#/Pet'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/error.yaml#/Error'
+  /pets/{petId}:
+    get:
+      tags:
+        - pets
+      summary: Найти питомца по идентификатору
+      operationId: getPetById
+      parameters:
+        - name: petId
+          in: path
+          description: Идентификатор питомца
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Питомец найден
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/pet.yaml#/Pet'
+        '404':
+          description: Питомец не найден
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/error.yaml#/Error'
+components:
+  schemas:
+    Pet:
+      $ref: './schemas/pet.yaml#/Pet'
+    NewPet:
+      $ref: './schemas/pet.yaml#/NewPet'
+    Tag:
+      $ref: './schemas/tag.yaml#/Tag'
+    Error:
+      $ref: './schemas/error.yaml#/Error'
