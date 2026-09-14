@@ -1,0 +1,108 @@
+name: Release
+
+# Каждый push в master собирает статику из ./build, кладёт её архивом в артефакты запуска,
+# создаёт тег v<версия из package.json>-<номер сборки> и публикует GitHub Release с этим же архивом.
+# Артефакт/архив затем вручную распаковывается и укладывается в docker-образ (nginx).
+on:
+  push:
+    branches: [master]
+  # Ручной запуск нужен, чтобы пересобрать релиз, не трогая master
+  # (перезапуск упавшего job'а переиспользует тот же номер сборки и тот же тег).
+  workflow_dispatch:
+
+# contents: write — создание тега и релиза от имени GITHUB_TOKEN.
+permissions:
+  contents: write
+
+# Сборки идут по очереди: две одновременные не подерутся за создание тега.
+concurrency:
+  group: release-master
+  cancel-in-progress: false
+
+env:
+  # Артефакты запуска временные (максимум 90 дней для публичного репозитория);
+  # постоянная копия архива живёт в GitHub Release.
+  ARTIFACT_RETENTION_DAYS: 30
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve version
+        id: version
+        run: |
+          BASE_VERSION="$(node -p "require('./package.json').version || '0.0.0'")"
+          VERSION="${BASE_VERSION}-${{ github.run_number }}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "archive=rome-api-$VERSION.zip" >> "$GITHUB_OUTPUT"
+          echo "Версия: $VERSION (база $BASE_VERSION, сборка #${{ github.run_number }})"
+          echo "Коммит: ${{ github.sha }}"
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify build output
+        run: |
+          test -f build/index.html
+          du -sh build
+          ls -R build | head -50
+
+      - name: Pack build
+        run: |
+          (cd build && zip -r "../${{ steps.version.outputs.archive }}" .)
+          unzip -l "${{ steps.version.outputs.archive }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.version.outputs.version }}
+          path: ${{ steps.version.outputs.archive }}
+          if-no-files-found: error
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+      - name: Publish tag and release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          ARCHIVE: ${{ steps.version.outputs.archive }}
+        run: |
+          cat > release-notes.md <<NOTES
+          Готовый билд RomeAPI версии \`$TAG\`.
+
+          Содержимое архива — результат \`npm run build\` из \`build/\`:
+          распаковать и положить в корень nginx-сайта (см. \`deploy/nginx.conf.example\`).
+          Рядом кладутся \`settings.yml\` и файлы спецификаций.
+
+          Коммит: ${{ github.sha }}
+          Сборка: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+          \`\`\`bash
+          gh release download $TAG --repo ${{ github.repository }} --pattern '*.zip'
+          \`\`\`
+          NOTES
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # Повторный запуск того же workflow run: релиз уже есть, обновляем архив.
+            gh release upload "$TAG" "$ARCHIVE" --clobber
+          else
+            gh release create "$TAG" "$ARCHIVE" \
+              --target "${{ github.sha }}" \
+              --title "RomeAPI $TAG" \
+              --notes-file release-notes.md
+          fi
+
+          gh release view "$TAG" --json tagName,name,assets --jq '{tag: .tagName, name: .name, assets: [.assets[].name]}'

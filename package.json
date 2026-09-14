@@ -1,5 +1,6 @@
 {
   "name": "rome-api",
+  "version": "0.1.0",
   "description": "Web UI to load OpenApi and AsyncApi API specs",
   "author": "Mitin Aleksandr",
   "readmeFilename": "README.md",
