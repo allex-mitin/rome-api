@@ -48,6 +48,22 @@ export default defineConfig(({ mode }) => {
             outDir: 'build',
             // Source maps are only useful while developing: do not ship sources in the static bundle.
             sourcemap: mode !== 'production',
+            rollupOptions: {
+                output: {
+                    // One JS file for the whole app (`assets/index-*.js`) instead of an entry plus a
+                    // chunk per renderer. Rollup splits the bundle because both renderers are dynamic
+                    // imports (`Documentation.tsx`) and the validators are shared between them; inlining
+                    // the dynamic imports puts all of it into the entry chunk, so the build ships a
+                    // predictable minimum of files to deploy.
+                    //
+                    // The price is on the first paint: the single bundle is ~6.8 MB raw / ~1.6 MB
+                    // gzip, so the AsyncAPI renderer (~5 MB) is downloaded even when only an OpenAPI
+                    // spec is opened. That is acceptable for a documentation viewer, but it is a real
+                    // trade-off — if the first-load size starts to matter, removing this line restores
+                    // the split (entry + one chunk per renderer + the shared validators).
+                    inlineDynamicImports: true,
+                },
+            },
         },
         server: {
             port: 3000,

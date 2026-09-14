@@ -93,6 +93,6 @@ export interface Branding {
     accentColor?: string
     /** Browser tab title. Defaults to `title`. */
     documentTitle?: string
-    /** URL of the favicon. Omit to keep the one baked into `index.html`. */
+    /** URL of the favicon. Omit to keep the `/favicon.ico` shipped next to the build. */
     favicon?: string
 }

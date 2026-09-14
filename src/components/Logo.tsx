@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { FC } from 'react';
 import styled from 'styled-components';
-import logoUrl from '../assets/logo.svg';
+import { DEFAULT_LOGO } from '../helpers/branding';
 
 interface LogoProps {
     className?: string;
@@ -22,17 +22,17 @@ const Image = styled.img<{ $height: number }>`
 
 export const Logo: FC<LogoProps> = ({ className, src, alt = 'Rome API', height = 35 }) => {
     // A broken `branding.logo` URL must not leave a torn-image icon in the header: fall back to the
-    // artwork bundled with the build. The flag is reset when the URL changes, so a fixed settings
+    // artwork shipped with the build. The flag is reset when the URL changes, so a fixed settings
     // file takes effect after a reload.
     const [failed, setFailed] = useState(false);
-    const source = failed || !src ? logoUrl : src;
+    const source = failed || !src ? DEFAULT_LOGO : src;
 
     useEffect(() => {
         setFailed(false);
     }, [src]);
 
-    // The artwork is kept in `assets/logo.svg` instead of being inlined: as inline JSX it
-    // used to add ~143 kB to the initial bundle.
+    // The artwork is a plain file in the build (`/logo.svg`) rather than inline JSX: as inline JSX
+    // it used to add ~143 kB to the initial bundle.
     return (
         <Image
             src={ source }

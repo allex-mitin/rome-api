@@ -4,6 +4,8 @@
 #   /usr/share/nginx/html/          <- contents of the `build/` directory
 #   /usr/share/nginx/html/test/     <- your API spec files (optional)
 #   /usr/share/nginx/html/settings.yml
+#   /usr/share/nginx/html/assets/logo.svg      <- shipped by the build, replaceable in place
+#   /usr/share/nginx/html/assets/favicon.ico   <- shipped by the build, replaceable in place
 #   /usr/share/nginx/html/branding/ <- your logo/favicon (optional)
 #
 # `createBrowserRouter` uses real paths (/service/:serviceName/...), so the
@@ -32,6 +34,18 @@ server {
     # too. The exact match wins over the asset rule below, which would otherwise
     # cache it as immutable for a year — and a rebrand would not show up.
     location = /settings.js {
+        add_header Cache-Control "no-cache";
+    }
+
+    # The shipped icon and logo live in the unhashed part of the asset directory and are
+    # replaced by a deployment the same way. `.ico` and `.svg` are in the asset rule
+    # below, so without these exact matches a new icon or logo would stay in the
+    # browser cache for a year.
+    location = /assets/favicon.ico {
+        add_header Cache-Control "no-cache";
+    }
+
+    location = /assets/logo.svg {
         add_header Cache-Control "no-cache";
     }
 

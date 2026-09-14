@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react';
 
-import defaultLogo from '../assets/logo.svg';
 import type { Branding } from '../types';
 import { getSettings } from './index';
+
+/**
+ * The artwork shipped with the build: a plain file in the asset directory (`public/assets/logo.svg`
+ * is copied to `build/assets/logo.svg` as is), not a bundled, hash-named asset. That way a deployment
+ * replaces the logo without rebuilding the frontend, exactly like `settings.yml` and `favicon.ico`.
+ *
+ * `BASE_URL` is what keeps the URL right when the app is served from a sub-path (`/api-docs/`).
+ */
+export const DEFAULT_LOGO = `${import.meta.env.BASE_URL}assets/logo.svg`;
 
 /**
  * Branding of the header, read at runtime from `settings.yml`.
@@ -30,7 +38,7 @@ export interface ResolvedBranding {
 export const DEFAULT_BRANDING: ResolvedBranding = {
     title: 'Rome API',
     subtitle: 'View API documentation service',
-    logo: defaultLogo,
+    logo: DEFAULT_LOGO,
     logoAlt: 'Rome API',
     logoHeight: 32,
     link: '/',

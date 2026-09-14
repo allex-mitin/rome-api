@@ -3,8 +3,6 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 import { ExternalLinkIcon } from "../components/icons";
 
-import openapiLogo from '../assets/openapi-logo.webp';
-import asyncapiLogo from '../assets/asyncapi-logo.webp';
 import { Services } from "../helpers";
 import type { Service } from "../types";
 
@@ -78,8 +76,9 @@ const cardHover = `
         inset 0 0 0 1px color-mix(in srgb, var(--app-accent) 35%, transparent);
 `
 
-// Two formats the viewer speaks. The logos are wordmarks, so the card does not repeat their names:
-// it explains what the format gives and links to the specification site.
+// Two formats the viewer speaks: each card names the format, explains what it gives and links to
+// the specification site. The format wordmarks used to sit here as images; they were dropped so the
+// build ships nothing but the bundled JS/CSS and the two replaceable branding files.
 const Formats = styled.div`
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -105,14 +104,10 @@ const FormatCard = styled.a`
     }
 `
 
-const FormatLogo = styled.img`
-    display: block;
-    height: 30px;
-    width: auto;
-    max-width: 100%;
-    object-fit: contain;
-    // The marks are left-aligned by their own left edge, not centred in the card.
-    margin-right: auto;
+const FormatTitle = styled.div`
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
 `
 
 const FormatNote = styled.div`
@@ -208,16 +203,14 @@ const Empty = styled.div`
 const FORMATS = [
     {
         id: 'openapi',
-        logo: openapiLogo,
-        alt: 'OpenAPI Initiative',
+        name: 'OpenAPI',
         note: 'REST-контракты: операции, параметры, схемы и примеры ответов.',
         href: 'https://www.openapis.org/',
         site: 'openapis.org',
     },
     {
         id: 'asyncapi',
-        logo: asyncapiLogo,
-        alt: 'AsyncAPI',
+        name: 'AsyncAPI',
         note: 'Событийные контракты: каналы, сообщения и схемы payload.',
         href: 'https://www.asyncapi.com/',
         site: 'asyncapi.com',
@@ -276,7 +269,7 @@ export const WelcomePage: FC = () => {
                                 rel="noreferrer"
                                 title={ `Открыть ${ format.site }` }
                             >
-                                <FormatLogo src={ format.logo } alt={ format.alt }/>
+                                <FormatTitle>{ format.name }</FormatTitle>
                                 <FormatNote>{ format.note }</FormatNote>
                                 <FormatLink>
                                     <LinkIcon/>
