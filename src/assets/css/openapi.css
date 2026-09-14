@@ -493,10 +493,61 @@
   padding: 0 10px;
 }
 
-/* The body sections carried their own drop shadow, i.e. another full-width line. */
+/* The summary carried swagger-ui's copy control: a saturated slate chip (`#7d8293`, 4px radius)
+   whose glyph was painted twice — swagger-ui's own background image plus the `CopyIcon` SVG that
+   this variant already has in the markup — so it read as a smudge next to the row's flat icons.
+   It is a ghost icon button now, built like the tag chevron: no fill, a muted icon, `--app-hover`
+   under the pointer. The box is still 0 wide until the row is hovered; `overflow: hidden` is what
+   keeps the icon of that state inside, because it is no longer white-on-white. */
+.swagger-ui .opblock .opblock-summary .view-line-link.copy-to-clipboard {
+  overflow: hidden;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--app-text-muted);
+  transition: width 0.15s ease, margin 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.swagger-ui .opblock .opblock-summary:hover .view-line-link.copy-to-clipboard {
+  width: 24px;
+  margin: 0 2px;
+}
+
+.swagger-ui .opblock .opblock-summary .view-line-link.copy-to-clipboard:hover {
+  background: var(--app-hover);
+  color: var(--app-text);
+}
+
+/* Here the icon is the SVG in the markup, not swagger-ui's background image: painted together they
+   stack into a blur, and that white `fill` is meant for the dark code blocks, not for this row. */
+.swagger-ui .opblock .opblock-summary .view-line-link.copy-to-clipboard button {
+  width: 100%;
+  height: 100%;
+  background: none;
+  border: 0;
+  color: inherit;
+}
+
+.swagger-ui .view-line-link.copy-to-clipboard svg path {
+  fill: currentColor;
+}
+
+/* swagger-ui keeps the browser's own ring on the summary control (`outline: auto`), which draws as
+   a heavy dark frame around the whole row. Keyboard focus gets the app's ring instead. */
+.swagger-ui .opblock-summary-control:focus {
+  outline: none;
+}
+
+.swagger-ui .opblock-summary-control:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent) 22%, transparent);
+}
+
+/* The body sections carried their own drop shadow, i.e. another full-width line. Their insets are
+   the table cells' own 12px, so a heading lines up with its table and the `Try it out` /
+   response-type controls keep that distance from the card edge instead of touching it. */
 .swagger-ui .opblock .opblock-section-header {
   min-height: 0;
-  padding: 10px 0 6px;
+  padding: 10px 12px 6px;
   background: transparent;
   box-shadow: none;
 }
