@@ -227,6 +227,29 @@ npm run build       # результат в ./build
 > поэтому в nginx обязателен SPA-фолбэк `try_files $uri $uri/ /index.html`. Без него прямой переход
 > по ссылке или перезагрузка страницы вернёт 404.
 
+### Релизы (GitHub Actions)
+
+Каждый push в `master` запускает [`.github/workflows/release.yml`](.github/workflows/release.yml):
+`npm ci` → `npm run build` → архив `rome-api-<версия>.zip` из содержимого `build/`.
+
+Версия = `version` из `package.json` плюс номер сборки: при `"version": "0.1.0"` и 42-м запуске
+workflow получаются тег `v0.1.0-42`, артефакт `0.1.0-42` и файл `rome-api-0.1.0-42.zip`. Базовую
+версию поднимают руками в `package.json` перед значимым релизом, номер сборки растёт сам.
+
+Что появляется в репозитории:
+
+* **Artifact** запуска `0.1.0-42` — тот же zip, живёт 30 дней (`env.ARTIFACT_RETENTION_DAYS` в workflow);
+* **Release** `v0.1.0-42` с прикреплённым архивом плюс одноимённый git-тег — хранится постоянно.
+
+```bash
+gh release download v0.1.0-42 --repo allex-mitin/rome-api --pattern '*.zip'
+unzip rome-api-0.1.0-42.zip -d ./dist   # это и есть содержимое build/
+```
+
+Дальше распакованное кладётся в корень nginx-сайта или внутрь docker-образа с nginx. Отдельные
+секреты не нужны: workflow хватает штатного `GITHUB_TOKEN` с `contents: write`. Перезапуск упавшего
+job'а переиспользует тот же номер сборки — релиз заново не создаётся, архив в нём обновляется.
+
 ## Структура проекта
 
 ```
@@ -246,6 +269,8 @@ public/
     invalid/        документы с ошибками валидации
 deploy/
   nginx.conf.example
+.github/workflows/
+  release.yml     сборка при push в master: тег, Release и артефакт с билдом
 ```
 
 ## Лицензия
