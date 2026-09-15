@@ -3,6 +3,8 @@ name: Release
 # Каждый push в master собирает статику из ./build, кладёт её архивом в артефакты запуска,
 # создаёт тег v<версия из package.json>-<номер сборки> и публикует GitHub Release с этим же архивом.
 # Артефакт/архив затем вручную распаковывается и укладывается в docker-образ (nginx).
+# Тот же запуск выкладывает демо в GitHub Pages (job `pages`) — вручную включается один раз:
+# Settings → Pages → Build and deployment → Source: GitHub Actions.
 on:
   push:
     branches: [master]
@@ -106,3 +108,69 @@ jobs:
           fi
 
           gh release view "$TAG" --json tagName,name,assets --jq '{tag: .tagName, name: .name, assets: [.assets[].name]}'
+
+  # Публикация демо на GitHub Pages. Job живёт в этом же workflow, а не в отдельном на `release:
+  # published`: события, созданные `GITHUB_TOKEN`-ом, не запускают другие workflow, так что
+  # отдельный workflow не проснулся бы на релиз, сделанный шагом выше.
+  pages:
+    name: Deploy to GitHub Pages
+    needs: release
+    runs-on: ubuntu-latest
+    # Pages принимает одну публикацию за раз; отменять начатую нельзя — деплой станет «залипшим».
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Страница проекта на Pages отдаётся из подпути (`https://<owner>.github.io/<repo>/`) и это
+      # надо зашить в сборку: пути к ассетам раскручиваются от `base` (`VITE_BASE_PATH`
+      # в vite.config.mts). Под своим доменом или на user-site база — `/`.
+      - name: Resolve base path
+        id: base
+        run: |
+          echo "path=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_OUTPUT"
+          echo "База для Pages: /${GITHUB_REPOSITORY#*/}/"
+
+      # Сборка вторая по счёту: у архива для nginx база `/` (его кладут в корень сайта), у Pages —
+      # подпуть, а `base` вшивается в `index.html` на этапе сборки, и задним числом его не сменить.
+      - name: Build
+        env:
+          VITE_BASE_PATH: ${{ steps.base.outputs.path }}
+        run: npm run build
+
+      - name: Add SPA fallback
+        run: |
+          test -f build/index.html
+          test -f build/settings.yml
+          # Роутинг — createBrowserRouter с «настоящими» путями, а у Pages нет try_files: незнакомый
+          # путь он отдаёт как 404.html (код 404, но SPA стартует и отрисовывает нужный маршрут).
+          # Без этой копии прямой переход по ссылке и перезагрузка страницы ломаются.
+          cp build/index.html build/404.html
+          du -sh build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

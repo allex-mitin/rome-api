@@ -223,6 +223,11 @@ npm run build       # результат в ./build
 и (при необходимости) каталог с брендированными логотипами.
 Пример конфигурации nginx: [`deploy/nginx.conf.example`](deploy/nginx.conf.example).
 
+Деплой в подпуть (например, `https://example.com/api-docs/`) — это сборка с `VITE_BASE_PATH=/api-docs/`:
+база вшивается в `index.html` и в адреса ассетов, а пути спек и `settings.yml`, записанные в конфиге
+от корня сайта (`/test/openapi.yaml`), пересчитываются от базы приложения (`resolveSpecUrl`
+в `src/helpers/index.ts`) — то есть конфиг остаётся неизменным при переносе с корня в подпуть.
+
 > **Важно:** роутинг использует `createBrowserRouter` и «настоящие» пути (`/service/:serviceName/...`),
 > поэтому в nginx обязателен SPA-фолбэк `try_files $uri $uri/ /index.html`. Без него прямой переход
 > по ссылке или перезагрузка страницы вернёт 404.
@@ -250,6 +255,23 @@ unzip rome-api-0.1.0-42.zip -d ./dist   # это и есть содержимо�
 секреты не нужны: workflow хватает штатного `GITHUB_TOKEN` с `contents: write`. Перезапуск упавшего
 job'а переиспользует тот же номер сборки — релиз заново не создаётся, архив в нём обновляется.
 
+### GitHub Pages
+
+Тот же workflow дополнительно выкладывает демо на Pages: job `pages` идёт после `release` и кладёт
+`build/` по адресу `https://<owner>.github.io/<repo>/`. Включается один раз вручную:
+**Settings → Pages → Build and deployment → Source: GitHub Actions** (без этого
+`actions/deploy-pages` падает с «Get Pages site failed»). Закрытые репозитории Pages не получают
+без платного плана.
+
+Что здесь устроено иначе, чем в nginx-деплое:
+
+* страница проекта живёт в подпути, поэтому сборка идёт с базой `/<repo>/` — второй сборкой,
+  отдельно от архива для nginx: база вшивается в `index.html` заранее;
+* у Pages нет `try_files`, поэтому в артефакт добавляется `404.html` — копия `index.html`
+  (незнакомый путь получает код 404, но SPA встаёт и рисует нужный маршрут);
+* `settings.yml` уезжает в Pages из `build/` как демо-конфигурация: брендинг и список сервисов
+  меняются только новым релизом, в отличие от nginx-деплоя, где файл правится на месте.
+
 ## Структура проекта
 
 ```
@@ -270,7 +292,7 @@ public/
 deploy/
   nginx.conf.example
 .github/workflows/
-  release.yml     сборка при push в master: тег, Release и артефакт с билдом
+  release.yml     сборка при push в master: тег, Release, артефакт с билдом и деплой на GitHub Pages
 ```
 
 ## Лицензия
