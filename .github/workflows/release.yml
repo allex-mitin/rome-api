@@ -1,7 +1,9 @@
 name: Release
 
 # Каждый push в master собирает статику из ./build, кладёт её архивом в артефакты запуска,
-# создаёт тег v<версия из package.json>-<номер сборки> и публикует GitHub Release с этим же архивом.
+# создаёт тег v<major.minor.patch> (major.minor берётся из package.json, patch — следующий за
+# максимальным среди уже опубликованных релизов этой же major.minor) и публикует GitHub Release
+# с этим же архивом.
 # Артефакт/архив затем вручную распаковывается и укладывается в docker-образ (nginx).
 # Тот же запуск выкладывает демо в GitHub Pages (job `pages`) — вручную включается один раз:
 # Settings → Pages → Build and deployment → Source: GitHub Actions.
@@ -48,8 +50,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 1. Читаем версию и оставляем только major.minor (например, из "1.2.0" или "1.2" получаем "1.2")
-          BASE_VERSION="$(node -p "require('./package.json').version.replace(/^(\\d+\\.\\d+).*/, '$1') || '0.0'")"
+          # 1. Читаем версию и оставляем только major.minor (например, из "1.2.0" или "1.2" получаем "1.2").
+          # Никаких regex-замен: внутри двойных кавычек bash раскрыл бы '$1' в пустую строку,
+          # и replace(...) вернул бы "" — отсюда фолбэк '0.0' и падение шага. Режем версию split'ом.
+          BASE_VERSION="$(node -p "const [major = '0', minor = '0'] = require('./package.json').version.split('.'); major + '.' + minor")"
           
           if [ -z "$BASE_VERSION" ] || [ "$BASE_VERSION" = "0.0" ]; then
             echo "::error::Не удалось определить major.minor из package.json"
@@ -57,9 +61,17 @@ jobs:
           fi
 
           # 2. Ищем максимальный patch среди существующих тегов вида v<major>.<minor>.*
+          # Только --json/--jq: обычная таблица `gh release list` печатает первой колонкой TITLE,
+          # а не тег (у нас title = "RomeAPI v0.1.0"), и awk '{print $1}' давал "RomeAPI".
+          # Вызов вынесен из пайпа и проверяется явно: в пайпе код возврата gh теряется, а молчаливое
+          # «пусто» здесь означало бы patch=0 и перезапись уже опубликованного релиза (`--clobber`).
+          if ! RELEASES=$(gh release list --limit 100 --json tagName --jq '.[].tagName'); then
+            echo "::error::gh release list не отработал — patch вычислить нечем (проверь GITHUB_TOKEN и права contents: write)"
+            exit 1
+          fi
+
           # sort -V сортирует версии правильно (1.2.9 < 1.2.10)
-          LAST_TAG=$(gh release list --limit 100 \
-            | awk '{print $1}' \
+          LAST_TAG=$(printf '%s\n' "$RELEASES" \
             | grep -E "^v${BASE_VERSION//./\\.}\.[0-9]+$" \
             | sort -V \
             | tail -n 1 || true)
