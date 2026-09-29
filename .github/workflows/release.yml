@@ -205,6 +205,22 @@ jobs:
           cp build/index.html build/404.html
           du -sh build
 
+      # Демо-спецификации едут на Pages вместе со статикой: Vite копирует `public/` (а в нём лежит
+      # `test/`) в `build/` как есть, так что в артефакте они уже есть. Без фикстур демо открывается
+      # без спек, и заметно это было бы только на живой странице — поэтому проверяем здесь.
+      - name: Verify demo specs in artifact
+        run: |
+          test -f build/settings.js
+          test -f build/test/single-file/openapi.json
+          test -f build/test/single-file/asyncapi.yaml
+          test -f build/test/multi-file/openapi.yaml
+          test -f build/test/multi-file/asyncapi.yaml
+          test -f build/test/versions/openapi-0.0.2.yaml
+          test -f build/test/invalid/openapi.json
+          # `test/missing/` отсутствует намеренно: это сценарий «спеки не существует (404)».
+          echo "Файлов в build/test: $(find build/test -type f | wc -l)"
+          find build/test -mindepth 1 -maxdepth 1 -type d | sort
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
