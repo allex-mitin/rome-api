@@ -45,7 +45,10 @@ export const getService = async (path: string | undefined) => {
 }
 
 const loadSettingsFile = async (link: string): Promise<Settings | null> => {
-    const response = await fetch(`/${ link }`)
+    // The file is served next to the built assets, i.e. it is addressed from the app root
+    // (`BASE_URL`) and not from the site root: under a sub-path deployment (`VITE_BASE_PATH`)
+    // those two differ, and a root-absolute URL would leave the app entirely.
+    const response = await fetch(`${ import.meta.env.BASE_URL }${ link }`)
     if (!response.ok) {
         return null
     }
@@ -96,6 +99,26 @@ export const hasAsyncApi = (service: Service | undefined): boolean => {
     return service != undefined && service.asyncapi != undefined && (service.asyncapi.url != undefined || service.asyncapi.urls != undefined);
 }
 
+/**
+ * Addresses a spec URL from `settings.yml` / `settings.js` from the app root.
+ *
+ * Specs are deployed next to the built assets, so in the configuration they are written from the
+ * site root (`/test/single-file/openapi.json`). Under a sub-path deployment (`VITE_BASE_PATH`, e.g.
+ * GitHub Pages at `/rome-api/`) the very same file lives under that sub-path, and a root-absolute
+ * URL leaves the app: nginx/Vite/Pages answer with the SPA fallback, so the renderer gets
+ * `index.html` instead of a spec and reports an "HTML instead of a spec" error.
+ *
+ * With the default base (`/`) this is a no-op. External (`https://...`) and relative URLs are left
+ * untouched — where they point is decided by the deployment, not by the app.
+ */
+const resolveSpecUrl = (url: string): string => {
+    if (!url.startsWith('/')) {
+        return url
+    }
+    // `BASE_URL` always ends with a slash, and `/` means "no prefix to add".
+    return import.meta.env.BASE_URL.replace(/\/$/, '') + url
+}
+
 export const getSpecification = (service: Service | undefined, documentation: string | undefined, version: string | undefined) => {
     if (service == null) {
         return null
@@ -130,11 +153,11 @@ export const getSpecification = (service: Service | undefined, documentation: st
             const spec = this.spec();
             const urls = new Map<string, string>
             if (spec?.url) {
-                urls.set("default", spec.url)
+                urls.set("default", resolveSpecUrl(spec.url))
             }
             if (spec?.urls) {
                 Object.entries(spec.urls).forEach(([key, value]) => {
-                    urls.set(key, value)
+                    urls.set(key, resolveSpecUrl(value))
                 })
             }
             return urls;
