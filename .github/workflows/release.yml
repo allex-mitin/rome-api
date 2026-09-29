@@ -45,13 +45,40 @@ jobs:
 
       - name: Resolve version
         id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BASE_VERSION="$(node -p "require('./package.json').version || '0.0.0'")"
-          VERSION="${BASE_VERSION}-${{ github.run_number }}"
+          # 1. Читаем версию и оставляем только major.minor (например, из "1.2.0" или "1.2" получаем "1.2")
+          BASE_VERSION="$(node -p "require('./package.json').version.replace(/^(\\d+\\.\\d+).*/, '$1') || '0.0'")"
+          
+          if [ -z "$BASE_VERSION" ] || [ "$BASE_VERSION" = "0.0" ]; then
+            echo "::error::Не удалось определить major.minor из package.json"
+            exit 1
+          fi
+
+          # 2. Ищем максимальный patch среди существующих тегов вида v<major>.<minor>.*
+          # sort -V сортирует версии правильно (1.2.9 < 1.2.10)
+          LAST_TAG=$(gh release list --limit 100 \
+            | awk '{print $1}' \
+            | grep -E "^v${BASE_VERSION//./\\.}\.[0-9]+$" \
+            | sort -V \
+            | tail -n 1 || true)
+
+          # 3. Вычисляем новый patch
+          if [ -n "$LAST_TAG" ]; then
+            LAST_PATCH=$(echo "$LAST_TAG" | grep -oE '[0-9]+$')
+            NEW_PATCH=$((LAST_PATCH + 1))
+          else
+            # Если тегов для этой major.minor ещё нет, начинаем с 0
+            NEW_PATCH=0
+          fi
+
+          VERSION="${BASE_VERSION}.${NEW_PATCH}"
+          
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
           echo "archive=rome-api-$VERSION.zip" >> "$GITHUB_OUTPUT"
-          echo "Версия: $VERSION (база $BASE_VERSION, сборка #${{ github.run_number }})"
+          echo "📦 Новая версия: $VERSION (из package.json: ${BASE_VERSION}.x, предыдущий тег: ${LAST_TAG:-нет})"
           echo "Коммит: ${{ github.sha }}"
 
       - name: Build
