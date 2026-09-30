@@ -11,7 +11,8 @@ import { RouterProvider } from "react-router";
 import { WelcomePage } from "../pages/WelcomePage";
 import { ErrorPage } from "../pages/ErrorPage";
 import { Service } from "./Service";
-import { getService, hasAsyncApi, hasOpenApi } from "../helpers";
+import { getService, getSettings, hasAsyncApi, hasOpenApi, Services } from "../helpers";
+import { isServiceListHidden } from "../helpers/ui";
 import { applyDocumentBranding, useBranding } from '../helpers/branding';
 import { Documentation } from "./Documentation";
 
@@ -25,8 +26,8 @@ export const App: FC = () => {
     }, [branding]);
 
     const routes = createRoutesFromElements([
-        <Route key="root" path="/" element={ <Layout/> }>
-            <Route index element={ <WelcomePage/> }/>
+        <Route key="root" path="/" element={ <Layout/> } loader={ settingsLoader }>
+            <Route index element={ <WelcomePage/> } loader={ singleServiceRedirect }/>
             <Route path="/home" element={ <WelcomePage/> }/>
             <Route path="/service/:serviceName" element={ <Service/> } loader={ serviceLoader } errorElement={ <ErrorPage/> }>
                 <Route index element={ <Documentation/> } loader={ defaultDocumentation }/>
@@ -45,6 +46,39 @@ export const App: FC = () => {
 
     return (<RouterProvider router={ router }/>)
 };
+
+/**
+ * Reads the settings before the shell is painted.
+ *
+ * The service list, the header search and the welcome page all need them, and the spec loaders reuse
+ * the same promise (the read is memoized in `src/helpers`). The file is served next to the build, so
+ * resolving it after mount would render a shell that has to be corrected a tick later — visible as a
+ * service list flashing in on a deployment that hides it.
+ */
+export const settingsLoader = async () => {
+    await getSettings()
+    return null
+}
+
+/**
+ * Sends the site root straight to the only configured service.
+ *
+ * With `ui.hideServiceListWhenSingle` and exactly one service there is nothing to pick on the
+ * showcase page, so the root opens that service instead (`/home` still shows the showcase). A service
+ * without a single spec is left alone: there would be nothing to open, and the showcase is the only
+ * useful page left.
+ */
+export const singleServiceRedirect = async () => {
+    const services = await Services()
+    if (!isServiceListHidden(services)) {
+        return null
+    }
+    const onlyService = services[0]
+    if (!hasOpenApi(onlyService) && !hasAsyncApi(onlyService)) {
+        return null
+    }
+    return redirect(`/service/${ onlyService.path }`)
+}
 
 export const serviceLoader = async ({ params }: LoaderFunctionArgs) => {
     const service = await getService(params.serviceName)

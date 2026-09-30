@@ -32,6 +32,17 @@ export const getSettings = async (): Promise<Settings | null> => {
  */
 export const getLoadedSettings = (): Settings | null => resolvedSettings
 
+/**
+ * The services from the settings that are already in memory.
+ *
+ * The shell (the service list, the header search) needs the list to decide what to render, and it
+ * needs that answer synchronously: an async read would paint the list first and hide it a tick later.
+ * The root route awaits the settings before it renders anything (`settingsLoader` in
+ * `src/components/App.tsx`), so for a rendered shell this is filled in; before that first read it is
+ * empty, which is exactly what a deployment without a settings file should show.
+ */
+export const getLoadedServices = (): Service[] => getLoadedSettings()?.services ?? []
+
 export const Services = async (): Promise<Service[]> => {
     return (await getSettings())?.services ?? []
 }
