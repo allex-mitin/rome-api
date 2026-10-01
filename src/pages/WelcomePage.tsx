@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { ExternalLinkIcon } from "../components/icons";
 
 import { Services } from "../helpers";
+import { isServiceListHidden } from "../helpers/ui";
 import type { Service } from "../types";
 
 const WelcomePageWrapper = styled.div`
@@ -247,6 +248,12 @@ export const WelcomePage: FC = () => {
         Services().then((loaded) => setServices(loaded));
     }, []);
 
+    // With a single service the sidebar, the grid and the search all carry the same redundant thing:
+    // that one service, which is already open. The settings decide it
+    // (`ui.hideServiceListWhenSingle`); computed here only once the services are read, so the showcase
+    // never renders without its grid for a multi-service configuration.
+    const oneServiceMode = services !== null && isServiceListHidden(services)
+
     return (
         <WelcomePageWrapper>
             <Inner>
@@ -254,7 +261,7 @@ export const WelcomePage: FC = () => {
                     <Headline>Документация API</Headline>
                     <Lead>
                         Спецификации OpenAPI и AsyncAPI всех сервисов системы: операции, схемы, каналы,
-                        сообщения и версии. Поиск в шапке охватывает все спецификации одновременно.
+                        сообщения и версии.{ !oneServiceMode && ' Поиск в шапке охватывает все спецификации одновременно.' }
                     </Lead>
                 </div>
 
@@ -280,43 +287,45 @@ export const WelcomePage: FC = () => {
                     </Formats>
                 </div>
 
-                <div>
-                    <SectionHeader>
-                        <SectionTitle>Сервисы</SectionTitle>
-                        { services !== null && services.length > 0 && <Counter>{ services.length }</Counter> }
-                    </SectionHeader>
+                { !oneServiceMode && (
+                    <div>
+                        <SectionHeader>
+                            <SectionTitle>Сервисы</SectionTitle>
+                            { services !== null && services.length > 0 && <Counter>{ services.length }</Counter> }
+                        </SectionHeader>
 
-                    { services !== null && services.length === 0 && (
-                        <Empty>
-                            Сервисы не настроены — добавьте их в <b>settings.yml</b> рядом со сборкой.
-                        </Empty>
-                    ) }
+                        { services !== null && services.length === 0 && (
+                            <Empty>
+                                Сервисы не настроены — добавьте их в <b>settings.yml</b> рядом со сборкой.
+                            </Empty>
+                        ) }
 
-                    { services !== null && services.length > 0 && (
-                        <Grid>
-                            { services.map((service) => {
-                                const formats = formatsOf(service);
+                        { services !== null && services.length > 0 && (
+                            <Grid>
+                                { services.map((service) => {
+                                    const formats = formatsOf(service);
 
-                                return (
-                                    <ServiceCard
-                                        key={ service.path }
-                                        to={ `/service/${ service.path }` }
-                                        title={ service.name }
-                                    >
-                                        <CardTitle>{ service.name }</CardTitle>
-                                        <CardMeta>
-                                            { formats.map((format) => <Format key={ format }>{ format }</Format>) }
-                                            { formats.length === 0 && <Note>нет спецификаций</Note> }
-                                            { versionCount(service) > 0 && (
-                                                <Note>{ versionLabel(versionCount(service)) }</Note>
-                                            ) }
-                                        </CardMeta>
-                                    </ServiceCard>
-                                );
-                            }) }
-                        </Grid>
-                    ) }
-                </div>
+                                    return (
+                                        <ServiceCard
+                                            key={ service.path }
+                                            to={ `/service/${ service.path }` }
+                                            title={ service.name }
+                                        >
+                                            <CardTitle>{ service.name }</CardTitle>
+                                            <CardMeta>
+                                                { formats.map((format) => <Format key={ format }>{ format }</Format>) }
+                                                { formats.length === 0 && <Note>нет спецификаций</Note> }
+                                                { versionCount(service) > 0 && (
+                                                    <Note>{ versionLabel(versionCount(service)) }</Note>
+                                                ) }
+                                            </CardMeta>
+                                        </ServiceCard>
+                                    );
+                                }) }
+                            </Grid>
+                        ) }
+                    </div>
+                ) }
             </Inner>
         </WelcomePageWrapper>
     )

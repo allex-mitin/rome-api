@@ -12,6 +12,8 @@ export interface Settings {
     branding?: Branding
     /** Default renderer options for every service; a service can override them per spec. */
     renderers?: RendererOptions
+    /** Shell behaviour: the parts of the page that are neither branding nor renderer options. */
+    ui?: UiSettings
 }
 
 /**
@@ -60,6 +62,24 @@ export interface OpenApiSpec extends Spec {
 export interface AsyncApiSpec extends Spec {
     /** Renderer options for this spec; override `renderers.asyncapi`. */
     options?: AsyncApiOptions
+}
+
+/**
+ * Shell behaviour.
+ *
+ * Like `branding`, the section lives in `settings.yml`, is read in the browser and every key is
+ * optional — whatever the file omits comes from the defaults in `src/helpers/ui.ts`.
+ */
+export interface UiSettings {
+    /**
+     * Drop the service list when the configuration holds exactly one service.
+     *
+     * A one-item list offers no choice, yet it takes a fixed 268px off the spec, so a deployment that
+     * serves a single API can hide it: the sidebar disappears, the header loses its search field, the
+     * welcome page loses its service grid and the site root opens that service instead of the
+     * showcase. With zero or two or more services the flag changes nothing.
+     */
+    hideServiceListWhenSingle?: boolean
 }
 
 /**

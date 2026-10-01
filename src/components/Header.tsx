@@ -4,6 +4,8 @@ import styled, { css } from 'styled-components';
 import { Logo } from './Logo';
 import { GlobalSearch } from './GlobalSearch';
 import { useBranding } from '../helpers/branding';
+import { getLoadedServices } from '../helpers';
+import { isServiceListHidden } from '../helpers/ui';
 
 // `settings.yml` can name an organisation's own page here, so the header must be able to leave the
 // app as well as navigate inside it.
@@ -82,6 +84,10 @@ const Search = styled(GlobalSearch)`
 export const Header: FC = () => {
     const branding = useBranding();
 
+    // Search looks through the specs of every service. With a single one there is nothing to search
+    // across — the service is already open — so it goes away with the service list.
+    const searchVisible = !isServiceListHidden(getLoadedServices())
+
     const brand = (
         <>
             <Logo src={ branding.logo } alt={ branding.logoAlt } height={ branding.logoHeight }/>
@@ -100,7 +106,7 @@ export const Header: FC = () => {
                 ? <BrandLink href={ branding.link } target="_blank" rel="noreferrer">{ brand }</BrandLink>
                 : <BrandNavLink to={ branding.link }>{ brand }</BrandNavLink> }
 
-            <Search/>
+            { searchVisible && <Search/> }
         </HeaderWrapper>
     );
 };

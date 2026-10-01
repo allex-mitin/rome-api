@@ -3,6 +3,8 @@ import { Header } from './Header';
 import { Navigator } from "./Navigator";
 import { Outlet } from "react-router";
 import styled from "styled-components";
+import { getLoadedServices } from '../helpers';
+import { isServiceListHidden } from '../helpers/ui';
 
 const LayoutWrapper = styled.div`
     display: flex;
@@ -24,11 +26,16 @@ const LayoutBodyWrapper = styled.div`
 `;
 
 export const Layout: FC = () => {
+    // A single service makes the list redundant: it takes a fixed width off the spec and offers
+    // nothing to choose. Whether it is dropped is decided by the settings file
+    // (`ui.hideServiceListWhenSingle`), so every multi-service deployment keeps the current shell.
+    const services = getLoadedServices()
+
     return (
         <LayoutWrapper>
             <Header/>
             <LayoutBodyWrapper>
-                <Navigator/>
+                { !isServiceListHidden(services) && <Navigator/> }
                 <Outlet/>
             </LayoutBodyWrapper>
         </LayoutWrapper>

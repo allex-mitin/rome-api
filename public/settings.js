@@ -7,6 +7,10 @@ window.settings = () => {
             "title": "Rome API",
             "subtitle": "View API documentation service"
         },
+        // Поведение оболочки; ключи можно опускать — см. `src/helpers/ui.ts`.
+        "ui": {
+            "hideServiceListWhenSingle": true
+        },
         // Настройки рендереров; ключи можно опускать — см. `src/helpers/rendererOptions.ts`.
         "renderers": {
             "openapi": {
