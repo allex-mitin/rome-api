@@ -11,7 +11,7 @@ import { RouterProvider } from "react-router";
 import { WelcomePage } from "../pages/WelcomePage";
 import { ErrorPage } from "../pages/ErrorPage";
 import { Service } from "./Service";
-import { getService, getSettings, hasAsyncApi, hasOpenApi, Services } from "../helpers";
+import { appBase, getService, getSettings, hasAsyncApi, hasOpenApi, Services } from "../helpers";
 import { isServiceListHidden } from "../helpers/ui";
 import { applyDocumentBranding, useBranding } from '../helpers/branding';
 import { Documentation } from "./Documentation";
@@ -40,8 +40,11 @@ export const App: FC = () => {
         </Route>
     ])
     const router = createBrowserRouter(routes, {
-        // Supports deployment under a sub-path (see `base` in vite.config.ts).
-        basename: import.meta.env.BASE_URL,
+        // The mount path comes from the `<base href>` tag of the document (`appBase()`), so a
+        // sub-path deployment has to carry that one tag and nothing else. React Router accepts both
+        // a bare `/` (its documented "no basename" value) and a trailing slash — it strips the
+        // latter itself when matching the location.
+        basename: appBase(),
     })
 
     return (<RouterProvider router={ router }/>)

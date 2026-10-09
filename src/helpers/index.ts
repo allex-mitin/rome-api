@@ -5,6 +5,20 @@ import yaml from 'js-yaml'
 let resolvedSettings: Settings | null = null
 
 /**
+ * The path the app is served from, read from the document at runtime.
+ *
+ * Nothing is baked in at build time (`base: './'` in vite.config.mts), so one artifact has to work
+ * from the site root (`/`), from a sub-path (`/api-ui/`) and on GitHub Pages (`/rome-api/`). The
+ * mount path is pinned by the `<base href>` tag in `index.html` — the host replaces that single tag
+ * — and `document.baseURI` is that value, so this is the one place the runtime base is derived.
+ *
+ * Always ends with a slash (`/`, `/api-ui/`): that makes `${ appBase() }settings.yml` and
+ * `appBase().replace(/\/$/, '') + url` both come out right. Loading `index.html` directly (no tag,
+ * as in `npm run dev`) gives the directory of the document, which is the same answer.
+ */
+export const appBase = (): string => new URL('.', document.baseURI).pathname
+
+/**
  * The effective settings: the YAML file when it is available, the `window.settings` fallback
  * (provided by `public/settings.js`) otherwise.
  */
@@ -56,10 +70,10 @@ export const getService = async (path: string | undefined) => {
 }
 
 const loadSettingsFile = async (link: string): Promise<Settings | null> => {
-    // The file is served next to the built assets, i.e. it is addressed from the app root
-    // (`BASE_URL`) and not from the site root: under a sub-path deployment (`VITE_BASE_PATH`)
-    // those two differ, and a root-absolute URL would leave the app entirely.
-    const response = await fetch(`${ import.meta.env.BASE_URL }${ link }`)
+    // The file is served next to the built assets, so it is addressed from the app base and not from
+    // the site root: under a sub-path deployment those two differ, and a root-absolute URL would
+    // leave the app entirely.
+    const response = await fetch(`${ appBase() }${ link }`)
     if (!response.ok) {
         return null
     }
@@ -111,23 +125,24 @@ export const hasAsyncApi = (service: Service | undefined): boolean => {
 }
 
 /**
- * Addresses a spec URL from `settings.yml` / `settings.js` from the app root.
+ * Addresses a spec URL from `settings.yml` / `settings.js` from the app base.
  *
  * Specs are deployed next to the built assets, so in the configuration they are written from the
- * site root (`/test/single-file/openapi.json`). Under a sub-path deployment (`VITE_BASE_PATH`, e.g.
- * GitHub Pages at `/rome-api/`) the very same file lives under that sub-path, and a root-absolute
- * URL leaves the app: nginx/Vite/Pages answer with the SPA fallback, so the renderer gets
- * `index.html` instead of a spec and reports an "HTML instead of a spec" error.
+ * site root (`/test/single-file/openapi.json`). Under a sub-path deployment (GitHub Pages at
+ * `/rome-api/`, a Spring Boot app at `/api-ui/`) the very same file lives under that sub-path, and a
+ * root-absolute URL leaves the app: nginx/Vite/Pages answer with the SPA fallback, so the renderer
+ * gets `index.html` instead of a spec and reports an "HTML instead of a spec" error.
  *
- * With the default base (`/`) this is a no-op. External (`https://...`) and relative URLs are left
- * untouched — where they point is decided by the deployment, not by the app.
+ * With the app served from the root (`appBase() === '/'`) this is a no-op. External (`https://...`)
+ * and relative URLs are left untouched — where they point is decided by the deployment, not by the
+ * app.
  */
 const resolveSpecUrl = (url: string): string => {
     if (!url.startsWith('/')) {
         return url
     }
-    // `BASE_URL` always ends with a slash, and `/` means "no prefix to add".
-    return import.meta.env.BASE_URL.replace(/\/$/, '') + url
+    // `appBase()` always ends with a slash, and `/` means "no prefix to add".
+    return appBase().replace(/\/$/, '') + url
 }
 
 export const getSpecification = (service: Service | undefined, documentation: string | undefined, version: string | undefined) => {

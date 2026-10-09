@@ -11,6 +11,26 @@
 # `createBrowserRouter` uses real paths (/service/:serviceName/...), so the
 # SPA fallback (`try_files ... /index.html`) is REQUIRED, otherwise a direct
 # link or a page reload returns 404.
+#
+# Serving from a sub-path (https://example.com/api-docs/) needs no rebuild: the
+# bundle is relative, and the mount path is the single `<base href="/">` tag in
+# `index.html` — assets, `settings.yml`, spec URLs and the router basename all
+# follow it. Two options.
+#
+# 1. Patch that one tag once, right after unpacking the build:
+#      sed 's|<base href="/" />|<base href="/api-docs/" />|' index.html > patched.html
+#      mv patched.html index.html
+#
+# 2. Or leave the file alone and rewrite the tag on the fly:
+#      location /api-docs/ {
+#          # gzip must stay off here: sub_filter does not touch a compressed body
+#          sub_filter '<base href="/" />' '<base href="/api-docs/" />';
+#          sub_filter_once on;
+#          try_files $uri $uri/ /api-docs/index.html;
+#      }
+#
+# Without the tag a reload at /api-docs/service/default would resolve
+# `./assets/...` one level too deep (/api-docs/service/assets/... -> 404).
 
 server {
     listen       80;

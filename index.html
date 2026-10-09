@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!--
+        The one place the mount path is configured. Everything else in the bundle is relative
+        (`base: './'` in vite.config.mts), so this tag alone decides where the app thinks it lives:
+        assets, `settings.yml`, spec URLs and the router basename all follow it (see `appBase` in
+        src/helpers/index.ts).
+
+        `/` is correct for a deployment in the site root. A host that serves the bundle from a
+        sub-path replaces this exact tag — e.g. `<base href="/api-ui/">` — and nothing else has to
+        be rebuilt or rewritten. Without a matching tag a direct link to a route
+        (`/api-ui/service/default/openapi`) would resolve `./assets/...` one level too deep.
+    -->
+    <base href="/" />
     <title>RomeAPI</title>
 
     <meta charset="utf-8">

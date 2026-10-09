@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 
 import type { Branding } from '../types';
-import { getSettings } from './index';
+import { appBase, getSettings } from './index';
 
 /**
  * The artwork shipped with the build: a plain file in the asset directory (`public/assets/logo.svg`
  * is copied to `build/assets/logo.svg` as is), not a bundled, hash-named asset. That way a deployment
  * replaces the logo without rebuilding the frontend, exactly like `settings.yml` and `favicon.ico`.
  *
- * `BASE_URL` is what keeps the URL right when the app is served from a sub-path (`/api-docs/`).
+ * `appBase()` is what keeps the URL right when the app is served from a sub-path (`/api-ui/`): it is
+ * the `<base href>` of the document, not a value baked in at build time.
  */
-export const DEFAULT_LOGO = `${import.meta.env.BASE_URL}assets/logo.svg`;
+export const DEFAULT_LOGO = `${appBase()}assets/logo.svg`;
 
 /**
  * Branding of the header, read at runtime from `settings.yml`.
