@@ -1,21 +1,28 @@
 import path from 'node:path';
 import react from '@vitejs/plugin-react';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 
 // eslint-disable-next-line no-restricted-exports
 export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, process.cwd(), '');
     // Set by `npm run analyze` (scripts/analyze.mjs). The report is taken from a real
     // production build, so it does not affect `mode` or any other build setting.
     const isAnalyze = process.env.ANALYZE === '1';
 
     return {
-        // Deploying under a sub-path is possible via VITE_BASE_PATH (e.g. `/api-docs/`).
-        // Defaults to the site root.
-        base: env.VITE_BASE_PATH || '/',
+        // Relative on purpose: the build does not know the path it will be served from, and a
+        // relative base is the only one that is right everywhere. `index.html` then references
+        // `./assets/index-abc.js` and `./settings.js`, and the browser resolves them against the
+        // document base URL — pinned by the `<base href="/">` tag this build ships. A host that
+        // serves the bundle from a sub-path replaces that single tag (`<base href="/api-ui/">`)
+        // instead of rebuilding the app; `src/helpers/index.ts#appBase` reads the same value at
+        // runtime for the router, `settings.yml` and the spec URLs.
+        //
+        // GitHub Pages (`/rome-api/`) and nginx under a sub-path work the same way: neither needs a
+        // second build, only that one tag (Pages: in the `404.html` the release workflow writes).
+        base: './',
         resolve: {
             alias: {
                 // Browser build: use native `fetch` instead of `node-fetch`, which drags

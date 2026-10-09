@@ -5,8 +5,13 @@ name: Release
 # максимальным среди уже опубликованных релизов этой же major.minor) и публикует GitHub Release
 # с этим же архивом.
 # Артефакт/архив затем вручную распаковывается и укладывается в docker-образ (nginx).
-# Тот же запуск выкладывает демо в GitHub Pages (job `pages`) — вручную включается один раз:
-# Settings → Pages → Build and deployment → Source: GitHub Actions.
+#
+# Сборка ровно ОДНА на весь workflow: она относительная (`base: './'`), поэтому один и тот же
+# архив годится и для корня nginx-сайта, и для подпути, и для демо в Pages. Путь монтирования
+# задаётся не сборкой, а тегом `<base href="/">` в `index.html`, который есть в архиве: хост с
+# подпутём заменяет этот тег и ничего не пересобирает.
+# Тот же запуск выкладывает демо в GitHub Pages (job `pages`, берёт артефакт этой же сборки) —
+# вручную включается один раз: Settings → Pages → Build and deployment → Source: GitHub Actions.
 on:
   push:
     branches: [master]
@@ -32,6 +37,9 @@ jobs:
   release:
     name: Build and publish
     runs-on: ubuntu-latest
+    # Имя артефакта = версия: job `pages` не собирает заново, а скачивает артефакт этой сборки.
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -99,6 +107,14 @@ jobs:
       - name: Verify build output
         run: |
           test -f build/index.html
+          # Относительная база: ссылки на ассеты, иконку и на settings.js — от документа, а не от корня сайта.
+          # Если здесь появятся корневые пути (/assets/...), сборка перестанет работать в подпути.
+          grep -q 'src="./assets/' build/index.html
+          grep -q 'href="./assets/' build/index.html
+          grep -q 'src="./settings.js"' build/index.html
+          # Единственная точка конфигурации пути: её заменяет хост, отдающий UI из подпути
+          # (стартер подставляет свой `romeapi.path`, Pages — имя репозитория).
+          test "$(grep -c '<base href="/" />' build/index.html)" = "1"
           du -sh build
           ls -R build | head -50
 
@@ -127,6 +143,11 @@ jobs:
           Содержимое архива — результат \`npm run build\` из \`build/\`:
           распаковать и положить в корень nginx-сайта (см. \`deploy/nginx.conf.example\`).
           Рядом кладутся \`settings.yml\` и файлы спецификаций.
+
+          **Один архив на все варианты развёртывания.** Билд относительный и не знает своего пути:
+          в корне сайта он работает как есть, а для подпути (\`/api-ui/\` у Spring Boot стартера,
+          \`/rome-api/\` на Pages) достаточно заменить в \`index.html\` один тег —
+          \`<base href="/">\` на \`<base href="/api-ui/">\`. Пересборка не нужна.
 
           Коммит: ${{ github.sha }}
           Сборка: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
@@ -167,40 +188,41 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      # Сборка здесь НЕ повторяется: страница проекта живёт в подпути
+      # (`https://<owner>.github.io/<repo>/`), но это решается одним тегом в готовом `index.html`,
+      # а не вторым билдом. Артефакт — тот же архив, что уехал в релиз.
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
         with:
-          node-version-file: .nvmrc
-          cache: npm
+          name: ${{ needs.release.outputs.version }}
+          path: artifact
 
-      - name: Install dependencies
-        run: npm ci
-
-      # Страница проекта на Pages отдаётся из подпути (`https://<owner>.github.io/<repo>/`) и это
-      # надо зашить в сборку: пути к ассетам раскручиваются от `base` (`VITE_BASE_PATH`
-      # в vite.config.mts). Под своим доменом или на user-site база — `/`.
-      - name: Resolve base path
-        id: base
+      - name: Unpack artifact
         run: |
-          echo "path=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_OUTPUT"
-          echo "База для Pages: /${GITHUB_REPOSITORY#*/}/"
+          unzip -q artifact/*.zip -d build
+          test -f build/index.html
+          test -f build/settings.yml
+          du -sh build
 
-      # Сборка вторая по счёту: у архива для nginx база `/` (его кладут в корень сайта), у Pages —
-      # подпуть, а `base` вшивается в `index.html` на этапе сборки, и задним числом его не сменить.
-      - name: Build
-        env:
-          VITE_BASE_PATH: ${{ steps.base.outputs.path }}
-        run: npm run build
+      # Единственная правка под подпуть: `<base href="/">` → `<base href="/<repo>/">`.
+      # От неё зависят и ассеты (`./assets/...`), и рантайм-база внутри бандла (`appBase()`
+      # в src/helpers/index.ts: settings.yml, URL спек, basename роутера).
+      - name: Point the build at the Pages sub-path
+        run: |
+          REPO="${GITHUB_REPOSITORY#*/}"
+          test "$(grep -c '<base href="/" />' build/index.html)" = "1"
+          # Без `sed -i`: этот же однострочник приводится в README и должен работать и на GNU sed,
+          # и на BSD (macOS), где `-i` требует аргумент.
+          sed "s|<base href=\"/\" />|<base href=\"/$REPO/\" />|" build/index.html > patched.html
+          mv patched.html build/index.html
+          grep -q "<base href=\"/$REPO/\" />" build/index.html
+          echo "База для Pages: /$REPO/"
 
       - name: Add SPA fallback
         run: |
-          test -f build/index.html
-          test -f build/settings.yml
           # Роутинг — createBrowserRouter с «настоящими» путями, а у Pages нет try_files: незнакомый
           # путь он отдаёт как 404.html (код 404, но SPA стартует и отрисовывает нужный маршрут).
+          # Копия берётся после правки базы — иначе прямой переход в подпуть остался бы без неё.
           # Без этой копии прямой переход по ссылке и перезагрузка страницы ломаются.
           cp build/index.html build/404.html
           du -sh build
