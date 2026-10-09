@@ -5,6 +5,12 @@ name: Release
 # максимальным среди уже опубликованных релизов этой же major.minor) и публикует GitHub Release
 # с этим же архивом.
 # Артефакт/архив затем вручную распаковывается и укладывается в docker-образ (nginx).
+#
+# В релиз едут ДВА архива:
+#   rome-api-<version>.zip           — база `/`, распаковывается в корень nginx-сайта (как раньше);
+#   rome-api-<version>-universal.zip — база — плейсхолдер `__ROME_API_BASE__`, который хост-приложение
+#                                      (например Spring Boot starter, отдающий UI по своему пути)
+#                                      подставляет реальным префиксом в рантайме.
 # Тот же запуск выкладывает демо в GitHub Pages (job `pages`) — вручную включается один раз:
 # Settings → Pages → Build and deployment → Source: GitHub Actions.
 on:
@@ -90,6 +96,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
           echo "archive=rome-api-$VERSION.zip" >> "$GITHUB_OUTPUT"
+          echo "universal_archive=rome-api-$VERSION-universal.zip" >> "$GITHUB_OUTPUT"
           echo "📦 Новая версия: $VERSION (из package.json: ${BASE_VERSION}.x, предыдущий тег: ${LAST_TAG:-нет})"
           echo "Коммит: ${{ github.sha }}"
 
@@ -99,6 +106,10 @@ jobs:
       - name: Verify build output
         run: |
           test -f build/index.html
+          # Обычная сборка обязана остаться с базой `/`: плейсхолдер универсальной сборки здесь
+          # означал бы, что архивы перепутаны (её `npm run build` идёт ниже и перезаписывает `build/`).
+          grep -q '/assets/' build/index.html
+          ! grep -q '__ROME_API_BASE__' build/index.html
           du -sh build
           ls -R build | head -50
 
@@ -107,11 +118,37 @@ jobs:
           (cd build && zip -r "../${{ steps.version.outputs.archive }}" .)
           unzip -l "${{ steps.version.outputs.archive }}"
 
+      # Универсальная сборка: база — плейсхолдер, который подставляет хост-приложение в рантайме.
+      # Отдельная сборка нужна потому, что `base` вшивается в двух местах: в ссылки `index.html`
+      # и в JS-бандл (`import.meta.env.BASE_URL` — загрузка settings.yml, префикс URL спек,
+      # логотип по умолчанию, basename роутера), поэтому задним числом базу не сменить.
+      # Шаг идёт СТРОГО после упаковки обычного архива: `npm run build` перезаписывает `build/`.
+      - name: Build universal bundle
+        env:
+          VITE_BASE_PATH: /__ROME_API_BASE__/
+        run: npm run build
+
+      - name: Verify universal bundle
+        run: |
+          test -f build/index.html
+          grep -q '/__ROME_API_BASE__/assets/' build/index.html
+          # База попадает не только в HTML, но и в бандл: без этого settings.yml и спецификации
+          # запрашивались бы от корня сайта, а не от пути, по которому отдаётся UI.
+          grep -q -- '__ROME_API_BASE__' build/assets/index-*.js
+          du -sh build
+
+      - name: Pack universal build
+        run: |
+          (cd build && zip -r "../${{ steps.version.outputs.universal_archive }}" .)
+          unzip -l "${{ steps.version.outputs.universal_archive }}"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.version.outputs.version }}
-          path: ${{ steps.version.outputs.archive }}
+          path: |
+            ${{ steps.version.outputs.archive }}
+            ${{ steps.version.outputs.universal_archive }}
           if-no-files-found: error
           retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
@@ -120,6 +157,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.version.outputs.tag }}
           ARCHIVE: ${{ steps.version.outputs.archive }}
+          UNIVERSAL_ARCHIVE: ${{ steps.version.outputs.universal_archive }}
         run: |
           cat > release-notes.md <<NOTES
           Готовый билд RomeAPI версии \`$TAG\`.
@@ -134,13 +172,18 @@ jobs:
           \`\`\`bash
           gh release download $TAG --repo ${{ github.repository }} --pattern '*.zip'
           \`\`\`
+
+          Второй ассет — \`$UNIVERSAL_ARCHIVE\`: та же статика, но вместо базы \`/\` в неё зашит
+          плейсхолдер \`__ROME_API_BASE__\`. Его подставляет реальным путём хост-приложение,
+          которое отдаёт UI не из корня сайта (например Spring Boot starter) — подробности
+          в разделе «Встраивание в приложение» в \`README.md\`.
           NOTES
 
           if gh release view "$TAG" >/dev/null 2>&1; then
             # Повторный запуск того же workflow run: релиз уже есть, обновляем архив.
-            gh release upload "$TAG" "$ARCHIVE" --clobber
+            gh release upload "$TAG" "$ARCHIVE" "$UNIVERSAL_ARCHIVE" --clobber
           else
-            gh release create "$TAG" "$ARCHIVE" \
+            gh release create "$TAG" "$ARCHIVE" "$UNIVERSAL_ARCHIVE" \
               --target "${{ github.sha }}" \
               --title "RomeAPI $TAG" \
               --notes-file release-notes.md
